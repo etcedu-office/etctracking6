@@ -1,0 +1,3226 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ระบบติดตามวิทยานิพนธ์และการศึกษาค้นคว้าอิสระ - ภาควิชาเทคโนโลยีและสื่อสารการศึกษา คณะศึกษาศาสตร์ มหาวิทยาลัยมหาสารคาม">
+  <title>ระบบติดตามวิทยานิพนธ์ | มหาวิทยาลัยมหาสารคาม</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234A148C' d='M12 2L1 7l11 5 9-4.09V17h2V7L12 2zM3 9.27v6L12 20l9-4.73v-6L12 14 3 9.27z'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       CSS VARIABLES - Design Tokens
+       โทนสี: กรมท่า (น้ำเงินเข้ม) ขาว เหลืองมหาวิทยาลัย ม่วง Action
+       ============================================================ */
+    :root {
+      --color-primary: #1A237E;       /* กรมท่า */
+      --color-primary-dark: #0D1444;
+      --color-primary-light: #3949AB;
+      --color-accent: #4A148C;        /* ม่วง - Action */
+      --color-accent-light: #7B1FA2;
+      --color-yellow: #FFC107;        /* เหลืองมหาวิทยาลัย */
+      --color-yellow-dark: #FFA000;
+      --color-bg: #F5F7FA;
+      --color-surface: #FFFFFF;
+      --color-surface-alt: #FAFBFD;
+      --color-border: #E1E5EB;
+      --color-text: #1F2937;
+      --color-text-secondary: #6B7280;
+      --color-text-muted: #9CA3AF;
+      --color-success: #16A34A;
+      --color-success-bg: #DCFCE7;
+      --color-warning: #D97706;
+      --color-warning-bg: #FEF3C7;
+      --color-danger: #DC2626;
+      --color-danger-bg: #FEE2E2;
+      --color-info: #0284C7;
+      --color-info-bg: #E0F2FE;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+
+      --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+      --font-family: 'Sarabun', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+      --sidebar-width: 260px;
+      --header-height: 64px;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-family);
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--color-text);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    button, input, select, textarea { font-family: inherit; font-size: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    a { color: var(--color-accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img, svg { display: block; max-width: 100%; }
+    ul, ol { list-style: none; }
+    table { border-collapse: collapse; width: 100%; }
+
+    /* ============================================================
+       FOCUS & ACCESSIBILITY
+       ============================================================ */
+    :focus-visible {
+      outline: 3px solid var(--color-accent-light);
+      outline-offset: 2px;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    /* ============================================================
+       LAYOUT
+       ============================================================ */
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: var(--sidebar-width);
+      background: linear-gradient(180deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+      color: #fff;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      display: flex; flex-direction: column;
+      z-index: 100;
+      transition: transform var(--transition);
+      overflow-y: auto;
+    }
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 700; font-size: 16px;
+    }
+    .sidebar-logo svg { width: 32px; height: 32px; fill: var(--color-yellow); }
+    .sidebar-subtitle {
+      font-size: 12px; opacity: 0.7; margin-top: 4px;
+    }
+    .nav { flex: 1; padding: 16px 12px; }
+    .nav-section { margin-bottom: 20px; }
+    .nav-section-title {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.5); padding: 8px 12px 4px; font-weight: 600;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      color: rgba(255,255,255,0.85); font-size: 14px;
+      cursor: pointer; transition: background var(--transition);
+      text-align: left; width: 100%;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active {
+      background: var(--color-yellow); color: var(--color-primary-dark);
+      font-weight: 600;
+    }
+    .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .nav-item.active svg { fill: var(--color-primary-dark); }
+
+    .main {
+      flex: 1; margin-left: var(--sidebar-width);
+      display: flex; flex-direction: column; min-width: 0;
+    }
+    .header {
+      height: var(--header-height);
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; position: sticky; top: 0; z-index: 50;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .menu-toggle {
+      display: none; width: 40px; height: 40px;
+      border-radius: var(--radius-md); align-items: center; justify-content: center;
+    }
+    .menu-toggle:hover { background: var(--color-bg); }
+    .menu-toggle svg { width: 24px; height: 24px; stroke: var(--color-text); }
+    .page-title { font-size: 18px; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .user-chip {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 12px; border-radius: var(--radius-md);
+      background: var(--color-surface-alt); border: 1px solid var(--color-border);
+    }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--color-accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 13px;
+    }
+    .user-info { display: flex; flex-direction: column; font-size: 13px; line-height: 1.3; }
+    .user-name { font-weight: 600; }
+    .user-role {
+      font-size: 11px; color: var(--color-text-secondary);
+      padding: 2px 6px; border-radius: var(--radius-sm);
+      background: var(--color-yellow); color: var(--color-primary-dark);
+      display: inline-block; font-weight: 600; margin-top: 2px;
+    }
+
+    .content { flex: 1; padding: 24px; max-width: 1600px; margin: 0 auto; width: 100%; }
+    .content.hidden { display: none; }
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; padding: 10px 18px;
+      border-radius: var(--radius-md); font-weight: 500;
+      font-size: 14px; transition: all var(--transition);
+      border: 1px solid transparent; white-space: nowrap;
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--color-accent); color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--color-accent-light); }
+    .btn-secondary {
+      background: var(--color-surface); color: var(--color-text);
+      border-color: var(--color-border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-bg); border-color: var(--color-text-muted); }
+    .btn-danger { background: var(--color-danger); color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #B91C1C; }
+    .btn-warning { background: var(--color-warning); color: #fff; }
+    .btn-success { background: var(--color-success); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+    .btn-lg { padding: 12px 24px; font-size: 16px; }
+    .btn-block { width: 100%; }
+    .btn-icon { padding: 8px; width: 36px; height: 36px; }
+    .btn-icon svg { width: 18px; height: 18px; }
+
+    /* ============================================================
+       CARDS
+       ============================================================ */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow var(--transition);
+    }
+    .card:hover { box-shadow: var(--shadow-md); }
+    .card-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .card-title { font-size: 16px; font-weight: 600; }
+    .card-body { padding: 20px; }
+    .card-footer {
+      padding: 12px 20px; border-top: 1px solid var(--color-border);
+      background: var(--color-surface-alt); border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    /* ============================================================
+       STATS CARDS (Dashboard)
+       ============================================================ */
+    .stats-grid {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    .stat-card {
+      background: var(--color-surface); padding: 20px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: var(--color-primary);
+    }
+    .stat-card.warning::before { background: var(--color-warning); }
+    .stat-card.success::before { background: var(--color-success); }
+    .stat-card.danger::before { background: var(--color-danger); }
+    .stat-card.info::before { background: var(--color-info); }
+    .stat-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; }
+    .stat-value { font-size: 32px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+    .stat-icon {
+      position: absolute; top: 16px; right: 16px;
+      width: 40px; height: 40px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-bg); opacity: 0.7;
+    }
+    .stat-icon svg { width: 24px; height: 24px; }
+
+    /* ============================================================
+       TABLE
+       ============================================================ */
+    .table-wrapper {
+      overflow-x: auto; border-radius: var(--radius-md);
+      -webkit-overflow-scrolling: touch;
+    }
+    table.data-table {
+      width: 100%; min-width: 800px;
+    }
+    table.data-table th {
+      background: var(--color-primary); color: #fff;
+      padding: 12px 14px; text-align: left; font-weight: 600;
+      font-size: 13px; white-space: nowrap;
+      position: sticky; top: 0;
+    }
+    table.data-table td {
+      padding: 12px 14px; border-bottom: 1px solid var(--color-border);
+      font-size: 14px; vertical-align: middle;
+    }
+    table.data-table tbody tr:hover { background: var(--color-surface-alt); }
+    table.data-table tbody tr:last-child td { border-bottom: none; }
+    .table-tools {
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    /* ============================================================
+       FORMS
+       ============================================================ */
+    .form-group { margin-bottom: 16px; }
+    .form-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;
+    }
+    .form-label {
+      display: block; font-size: 13px; font-weight: 500;
+      margin-bottom: 6px; color: var(--color-text);
+    }
+    .form-label .required { color: var(--color-danger); }
+    .form-control {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      font-size: 14px; transition: border-color var(--transition), box-shadow var(--transition);
+      background: var(--color-surface); color: var(--color-text);
+    }
+    .form-control:focus {
+      outline: none; border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(74,20,140,0.1);
+    }
+    .form-control:disabled { background: var(--color-bg); cursor: not-allowed; }
+    textarea.form-control { min-height: 90px; resize: vertical; }
+    select.form-control { cursor: pointer; }
+    .form-help { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+    .form-error { font-size: 12px; color: var(--color-danger); margin-top: 4px; }
+    .form-control.invalid { border-color: var(--color-danger); }
+
+    /* ============================================================
+       BADGES
+       ============================================================ */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-success { background: var(--color-success-bg); color: var(--color-success); }
+    .badge-warning { background: var(--color-warning-bg); color: var(--color-warning); }
+    .badge-danger { background: var(--color-danger-bg); color: var(--color-danger); }
+    .badge-info { background: var(--color-info-bg); color: var(--color-info); }
+    .badge-default { background: var(--color-bg); color: var(--color-text-secondary); }
+    .badge-purple { background: rgba(74,20,140,0.1); color: var(--color-accent); }
+
+    /* ============================================================
+       MODAL
+       ============================================================ */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 16px; opacity: 0; pointer-events: none;
+      transition: opacity var(--transition);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--color-surface); border-radius: var(--radius-lg);
+      width: 100%; max-width: 600px; max-height: 90vh;
+      overflow-y: auto; box-shadow: var(--shadow-lg);
+      transform: translateY(20px); transition: transform var(--transition);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal.modal-lg { max-width: 900px; }
+    .modal-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title { font-size: 18px; font-weight: 600; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { background: var(--color-bg); }
+    .modal-body { padding: 20px; }
+    .modal-footer {
+      padding: 12px 20px; border-top: 1px solid var(--color-border);
+      display: flex; gap: 8px; justify-content: flex-end;
+      background: var(--color-surface-alt);
+    }
+
+    /* ============================================================
+       TOAST
+       ============================================================ */
+    .toast-container {
+      position: fixed; top: 20px; right: 20px; z-index: 300;
+      display: flex; flex-direction: column; gap: 8px;
+      max-width: 360px;
+    }
+    .toast {
+      background: var(--color-surface); border-radius: var(--radius-md);
+      padding: 12px 16px; box-shadow: var(--shadow-lg);
+      display: flex; align-items: flex-start; gap: 10px;
+      border-left: 4px solid var(--color-info);
+      animation: slideIn var(--transition);
+    }
+    .toast.success { border-left-color: var(--color-success); }
+    .toast.error { border-left-color: var(--color-danger); }
+    .toast.warning { border-left-color: var(--color-warning); }
+    .toast-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .toast-content { flex: 1; }
+    .toast-title { font-weight: 600; font-size: 14px; }
+    .toast-message { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+    @keyframes slideIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ============================================================
+       LOADING & STATES
+       ============================================================ */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid var(--color-border);
+      border-top-color: var(--color-accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay {
+      position: fixed; inset: 0; background: rgba(255,255,255,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 250;
+    }
+    .loading-overlay .spinner { width: 40px; height: 40px; border-width: 3px; }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--color-bg) 25%, var(--color-border) 50%, var(--color-bg) 75%);
+      background-size: 200% 100%;
+      animation: skeleton 1.5s infinite;
+      border-radius: var(--radius-sm);
+    }
+    @keyframes skeleton {
+      from { background-position: 200% 0; }
+      to { background-position: -200% 0; }
+    }
+    .skeleton-line { height: 14px; margin-bottom: 8px; }
+    .skeleton-line.short { width: 60%; }
+    .skeleton-block { height: 100px; }
+
+    .empty-state, .error-state {
+      text-align: center; padding: 40px 20px; color: var(--color-text-secondary);
+    }
+    .empty-state svg, .error-state svg {
+      width: 64px; height: 64px; margin: 0 auto 16px; opacity: 0.4;
+    }
+    .empty-state h3, .error-state h3 {
+      font-size: 16px; color: var(--color-text); margin-bottom: 4px;
+    }
+
+    /* ============================================================
+       LOGIN PAGE
+       ============================================================ */
+    .login-page {
+      min-height: 100vh; display: flex;
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-accent) 100%);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-card {
+      background: var(--color-surface); border-radius: var(--radius-xl);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+      width: 100%; max-width: 440px; overflow: hidden;
+    }
+    .login-header {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+      color: #fff; padding: 32px 24px; text-align: center;
+    }
+    .login-header svg { width: 56px; height: 56px; margin: 0 auto 12px; fill: var(--color-yellow); }
+    .login-header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .login-header p { font-size: 13px; opacity: 0.9; }
+    .login-body { padding: 28px 24px; }
+    .login-footer {
+      padding: 16px 24px; background: var(--color-surface-alt);
+      border-top: 1px solid var(--color-border);
+      font-size: 12px; text-align: center; color: var(--color-text-secondary);
+    }
+    .login-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0; color: var(--color-text-muted); font-size: 12px;
+    }
+    .login-divider::before, .login-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--color-border);
+    }
+
+    /* ============================================================
+       PROGRESS TIMELINE
+       ============================================================ */
+    .timeline {
+      display: flex; gap: 0; align-items: flex-start;
+      overflow-x: auto; padding-bottom: 12px;
+    }
+    .timeline-step {
+      flex: 1; min-width: 180px; position: relative;
+      padding-left: 28px;
+    }
+    .timeline-step::before {
+      content: ''; position: absolute; left: 12px; top: 24px; bottom: -20px;
+      width: 2px; background: var(--color-border);
+    }
+    .timeline-step:last-child::before { display: none; }
+    .timeline-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--color-border); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; margin-bottom: 8px;
+      position: absolute; left: 0; top: 0;
+    }
+    .timeline-step.completed .timeline-dot { background: var(--color-success); }
+    .timeline-step.in-progress .timeline-dot { background: var(--color-warning); }
+    .timeline-step.pending .timeline-dot { background: var(--color-border); color: var(--color-text-muted); }
+    .timeline-content { padding-left: 36px; padding-bottom: 24px; }
+    .timeline-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .timeline-meta { font-size: 12px; color: var(--color-text-secondary); }
+
+    .progress-bar-wrapper {
+      background: var(--color-bg); border-radius: 999px;
+      height: 8px; overflow: hidden; margin: 12px 0;
+    }
+    .progress-bar {
+      height: 100%; background: linear-gradient(90deg, var(--color-success), var(--color-warning));
+      border-radius: 999px; transition: width 0.5s;
+    }
+
+    /* ============================================================
+       GRID UTILITIES
+       ============================================================ */
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .flex { display: flex; }
+    .flex-col { display: flex; flex-direction: column; }
+    .flex-wrap { flex-wrap: wrap; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-end { justify-content: flex-end; }
+    .mt-2 { margin-top: 8px; } .mt-3 { margin-top: 12px; } .mt-4 { margin-top: 16px; }
+    .mb-2 { margin-bottom: 8px; } .mb-3 { margin-bottom: 12px; } .mb-4 { margin-bottom: 16px; }
+    .text-center { text-align: center; }
+    .text-sm { font-size: 13px; }
+    .text-muted { color: var(--color-text-secondary); }
+    .w-full { width: 100%; }
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination {
+      display: flex; gap: 4px; align-items: center; justify-content: center;
+      padding: 16px 0; flex-wrap: wrap;
+    }
+    .pagination button {
+      min-width: 36px; height: 36px; padding: 0 10px;
+      border: 1px solid var(--color-border); background: var(--color-surface);
+      border-radius: var(--radius-sm); font-size: 13px;
+    }
+    .pagination button:hover:not(:disabled) { background: var(--color-bg); }
+    .pagination button.active {
+      background: var(--color-accent); color: #fff; border-color: var(--color-accent);
+    }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pagination-info { font-size: 13px; color: var(--color-text-secondary); margin-left: 12px; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1024px) {
+      .sidebar {
+        transform: translateX(-100%);
+        box-shadow: var(--shadow-lg);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .menu-toggle { display: flex; }
+      .content { padding: 16px; }
+    }
+    @media (max-width: 640px) {
+      .header { padding: 0 12px; }
+      .user-info { display: none; }
+      .page-title { font-size: 16px; }
+      .stat-value { font-size: 24px; }
+      .modal { max-width: 100%; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .btn { padding: 10px 14px; font-size: 13px; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .content { padding: 12px; }
+    }
+
+    .sidebar-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      z-index: 99; display: none;
+    }
+    .sidebar-backdrop.show { display: block; }
+
+    /* Demo mode banner */
+    .demo-banner {
+      background: var(--color-warning-bg); color: var(--color-warning);
+      padding: 8px 16px; font-size: 13px; text-align: center;
+      border-bottom: 1px solid var(--color-warning);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <div id="modal-container"></div>
+  <div id="loading-overlay" class="loading-overlay" style="display:none">
+    <div class="spinner"></div>
+  </div>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const CONFIG = {
+  // ใส่ URL ของ Google Apps Script Web App ที่นี่
+  API_URL: '',
+  DEMO_MODE: true,           // true = ใช้ข้อมูลตัวอย่าง, false = เรียก API จริง
+  TOKEN_KEY: 'thesis_tracking_token',
+  USER_KEY: 'thesis_tracking_user',
+  API_TIMEOUT_MS: 30000,
+  PAGE_SIZE: 20,
+  APP_NAME: 'ระบบติดตามวิทยานิพนธ์',
+  APP_NAME_EN: 'Thesis Tracking System',
+  FACULTY: 'คณะศึกษาศาสตร์ มหาวิทยาลัยมหาสารคาม',
+  DEPARTMENT: 'ภาควิชาเทคโนโลยีและสื่อสารการศึกษา'
+};
+
+const ROLES = {
+  STUDENT: 'STUDENT',
+  ADVISOR: 'ADVISOR',
+  STAFF: 'STAFF',
+  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN'
+};
+
+const ROLE_LABELS = {
+  STUDENT: 'นิสิต',
+  ADVISOR: 'อาจารย์ที่ปรึกษา',
+  STAFF: 'เจ้าหน้าที่',
+  ADMIN: 'ผู้ดูแลระบบ',
+  SUPER_ADMIN: 'Super Admin'
+};
+
+const PROGRESS_STEPS = [
+  { step: 1, nameTh: 'อนุมัติหัวข้อและแต่งตั้งอาจารย์ที่ปรึกษา', nameEn: 'Topic Approval' },
+  { step: 2, nameTh: 'สอบเค้าโครง', nameEn: 'Proposal Defense' },
+  { step: 3, nameTh: 'ดำเนินการวิจัยและรายงานความก้าวหน้า', nameEn: 'Research Progress' },
+  { step: 4, nameTh: 'สอบปากเปล่าขั้นสุดท้าย', nameEn: 'Final Defense' },
+  { step: 5, nameTh: 'แก้ไขรูปเล่มและส่งฉบับสมบูรณ์', nameEn: 'Final Submission' }
+];
+
+const STATUS_LABELS = {
+  IN_PROGRESS: { label: 'กำลังดำเนินการ', class: 'badge-info' },
+  PENDING_DEFENSE: { label: 'รอสอบปากเปล่า', class: 'badge-warning' },
+  COMPLETED: { label: 'สำเร็จการศึกษา', class: 'badge-success' },
+  SUSPENDED: { label: 'พักการศึกษา', class: 'badge-danger' },
+  WITHDRAWN: { label: 'ออกกลางคัน', class: 'badge-default' }
+};
+
+const EXAM_TYPES = {
+  PROPOSAL: 'สอบเค้าโครง',
+  FINAL: 'สอบปากเปล่าขั้นสุดท้าย'
+};
+
+const EXAM_RESULTS = {
+  PASS: { label: 'ผ่าน', class: 'badge-success' },
+  CONDITIONAL_PASS: { label: 'ผ่านแบบมีเงื่อนไข', class: 'badge-warning' },
+  FAIL: { label: 'ไม่ผ่าน', class: 'badge-danger' },
+  PENDING: { label: 'รอดำเนินการ', class: 'badge-info' }
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const STATE = {
+  currentUser: null,
+  currentToken: null,
+  currentRoute: 'dashboard',
+  currentData: {},
+  filters: {},
+  pagination: { page: 1, pageSize: CONFIG.PAGE_SIZE, total: 0, totalPages: 0 },
+  loading: false,
+  submitting: false
+};
+
+/* ============================================================
+   DEMO DATA (ใช้เฉพาะเมื่อ DEMO_MODE = true)
+   ============================================================ */
+const DEMO_DATA = {
+  users: [
+    { id: 'u1', email: 'student@demo.ac.th', displayName: 'นายอนุชา พัฒนา', role: 'STUDENT', studentId: 's1', advisorId: '', status: 'ACTIVE' },
+    { id: 'u2', email: 'advisor@demo.ac.th', displayName: 'ผศ. สมชาย ใจดี', role: 'ADVISOR', advisorId: 'a1', status: 'ACTIVE' },
+    { id: 'u3', email: 'staff@demo.ac.th', displayName: 'เจ้าหน้าที่ สมหญิง', role: 'STAFF', status: 'ACTIVE' },
+    { id: 'u4', email: 'admin@demo.ac.th', displayName: 'ผู้ดูแล ปิยะ', role: 'ADMIN', status: 'ACTIVE' },
+    { id: 'u5', email: 'superadmin@demo.ac.th', displayName: 'Super Admin', role: 'SUPER_ADMIN', status: 'ACTIVE' }
+  ],
+  students: [
+    { id: 's1', studentCode: '65010001', titleTh: 'นาย', firstNameTh: 'อนุชา', lastNameTh: 'พัฒนา', firstNameEn: 'Anucha', lastNameEn: 'Pattana', email: 'anucha@demo.ac.th', phone: '081-111-1111', degreeLevel: 'ปริญญาโท', program: 'เทคโนโลยีและสื่อสารการศึกษา', studyPlan: 'แผน ก', academicYear: '2566', thesisId: 't1', advisorId: 'a1', coAdvisorId: '', currentStep: 2, status: 'IN_PROGRESS', startDate: '2024-06-01', expectedEndDate: '2026-03-01', actualEndDate: '', notes: '' },
+    { id: 's2', studentCode: '65010002', titleTh: 'นางสาว', firstNameTh: 'ปรีดา', lastNameTh: 'ศึกษาดี', firstNameEn: 'Prida', lastNameEn: 'Sukcadee', email: 'prida@demo.ac.th', phone: '081-222-2222', degreeLevel: 'ปริญญาโท', program: 'เทคโนโลยีและสื่อสารการศึกษา', studyPlan: 'แผน ข', academicYear: '2566', thesisId: 't2', advisorId: 'a2', coAdvisorId: '', currentStep: 3, status: 'IN_PROGRESS', startDate: '2024-01-15', expectedEndDate: '2025-12-01', actualEndDate: '', notes: '' },
+    { id: 's3', studentCode: '65010003', titleTh: 'นาย', firstNameTh: 'วิชัย', lastNameTh: 'วิจัยจริง', firstNameEn: 'Wichai', lastNameEn: 'Wichaijing', email: 'wichai@demo.ac.th', phone: '081-333-3333', degreeLevel: 'ปริญญาเอก', program: 'เทคโนโลยีและสื่อสารการศึกษา', studyPlan: 'แผน ก', academicYear: '2564', thesisId: 't3', advisorId: 'a1', coAdvisorId: 'a3', currentStep: 4, status: 'PENDING_DEFENSE', startDate: '2023-06-01', expectedEndDate: '2025-09-30', actualEndDate: '', notes: '' },
+    { id: 's4', studentCode: '64010010', titleTh: 'นาง', firstNameTh: 'มาลี', lastNameTh: 'สำเร็จ', firstNameEn: 'Malee', lastNameEn: 'Success', email: 'malee@demo.ac.th', phone: '081-444-4444', degreeLevel: 'ปริญญาโท', program: 'เทคโนโลยีและสื่อสารการศึกษา', studyPlan: 'แผน ก', academicYear: '2564', thesisId: 't4', advisorId: 'a2', coAdvisorId: '', currentStep: 5, status: 'COMPLETED', startDate: '2023-01-01', expectedEndDate: '2024-12-01', actualEndDate: '2024-11-15', notes: 'สำเร็จด้วยเกียรตินิยม' },
+    { id: 's5', studentCode: '65010020', titleTh: 'นาย', firstNameTh: 'กำลัง', lastNameTh: 'เลท', firstNameEn: 'Kamlang', lastNameEn: 'Late', email: 'kamlang@demo.ac.th', phone: '081-555-5555', degreeLevel: 'ปริญญาโท', program: 'เทคโนโลยีและสื่อสารการศึกษา', studyPlan: 'แผน ข', academicYear: '2563', thesisId: 't5', advisorId: 'a1', coAdvisorId: '', currentStep: 3, status: 'IN_PROGRESS', startDate: '2022-06-01', expectedEndDate: '2024-03-01', actualEndDate: '', notes: 'เกินกำหนด' }
+  ],
+  advisors: [
+    { id: 'a1', titleTh: 'ผศ.', firstNameTh: 'สมชาย', lastNameTh: 'ใจดี', academicPosition: 'ผู้ช่วยศาสตราจารย์', email: 'somchai@demo.ac.th', phone: '043-123456', expertise: 'เทคโนโลยีการศึกษา, e-Learning', maxQuota: 8, currentCount: 3, department: 'เทคโนโลยีและสื่อสารการศึกษา', isOverQuota: false },
+    { id: 'a2', titleTh: 'รศ.', firstNameTh: 'สมหญิง', lastNameTh: 'รักงาน', academicPosition: 'รองศาสตราจารย์', email: 'somying@demo.ac.th', phone: '043-234567', expertise: 'การวิจัยทางการศึกษา, สถิติ', maxQuota: 8, currentCount: 2, department: 'เทคโนโลยีและสื่อสารการศึกษา', isOverQuota: false },
+    { id: 'a3', titleTh: 'อ.', firstNameTh: 'ปิยะ', lastNameTh: 'มั่นคง', academicPosition: 'อาจารย์', email: 'piya@demo.ac.th', phone: '043-345678', expertise: 'Instructional Design, Media', maxQuota: 6, currentCount: 1, department: 'เทคโนโลยีและสื่อสารการศึกษา', isOverQuota: false }
+  ],
+  theses: [
+    { id: 't1', studentId: 's1', titleTh: 'การพัฒนาเว็บแอปพลิเคชันเพื่อสนับสนุนการเรียนรู้', titleEn: 'Web Application for Learning Support', type: 'วิทยานิพนธ์', degreeLevel: 'ปริญญาโท', status: 'IN_PROGRESS' },
+    { id: 't2', studentId: 's2', titleTh: 'แบบจำลองการวิจัยเชิงปริมาณในการศึกษา', titleEn: 'Quantitative Research Model', type: 'การศึกษาค้นคว้าอิสระ', degreeLevel: 'ปริญญาโท', status: 'IN_PROGRESS' },
+    { id: 't3', studentId: 's3', titleTh: 'นวัตกรรมการจัดการเรียนรู้แบบผสมผสาน', titleEn: 'Blended Learning Innovation', type: 'วิทยานิพนธ์', degreeLevel: 'ปริญญาเอก', status: 'PENDING_DEFENSE' }
+  ],
+  progress: [
+    { id: 'p1', studentId: 's1', step: 1, stepNameTh: 'อนุมัติหัวข้อและแต่งตั้งอาจารย์ที่ปรึกษา', status: 'COMPLETED', startDate: '2024-06-01', completedDate: '2024-08-15', approverId: 'a1', notes: '' },
+    { id: 'p2', studentId: 's1', step: 2, stepNameTh: 'สอบเค้าโครง', status: 'IN_PROGRESS', startDate: '2024-08-16', completedDate: '', notes: '' },
+    { id: 'p3', studentId: 's1', step: 3, stepNameTh: 'ดำเนินการวิจัย', status: 'PENDING', startDate: '', completedDate: '', notes: '' },
+    { id: 'p4', studentId: 's1', step: 4, stepNameTh: 'สอบปากเปล่าขั้นสุดท้าย', status: 'PENDING', startDate: '', completedDate: '', notes: '' },
+    { id: 'p5', studentId: 's1', step: 5, stepNameTh: 'แก้ไขรูปเล่ม', status: 'PENDING', startDate: '', completedDate: '', notes: '' }
+  ],
+  logbooks: [
+    { id: 'l1', studentId: 's1', advisorId: 'a1', entryDate: '2024-11-01', topic: 'รวบรวมเอกสารและงานวิจัยที่เกี่ยวข้อง', details: 'อ่านบทความ 10 เรื่อง สรุปประเด็นสำคัญ', status: 'APPROVED', feedback: 'ดีมาก ครบถ้วน', reviewedBy: 'a1', reviewedAt: '2024-11-03' },
+    { id: 'l2', studentId: 's1', advisorId: 'a1', entryDate: '2024-11-08', topic: 'ร่างเค้าโครงฉบับแรก', details: 'ส่งเค้าโครง 5 บท', status: 'PENDING', feedback: '', reviewedBy: '', reviewedAt: '' },
+    { id: 'l3', studentId: 's2', advisorId: 'a2', entryDate: '2024-11-05', topic: 'เก็บข้อมูลภาคสนาม', details: 'สัมภาษณ์ครู 20 คน', status: 'REVISION_REQUIRED', feedback: 'เพิ่มรายละเอียดเครื่องมือวิจัย', reviewedBy: 'a2', reviewedAt: '2024-11-07' }
+  ],
+  exams: [
+    { id: 'e1', studentId: 's3', thesisId: 't3', examType: 'FINAL', examDate: '2025-12-15', examTime: '09:00', room: 'ห้องสอบ 201', onlineUrl: 'https://meet.google.com/abc-defg-hij', status: 'SCHEDULED', result: '', committees: [
+      { role: 'CHAIR', advisorId: 'a2', name: 'รศ. สมหญิง รักงาน' },
+      { role: 'COMMITTEE', advisorId: 'a1', name: 'ผศ. สมชาย ใจดี' },
+      { role: 'SECRETARY', advisorId: 'a3', name: 'อ. ปิยะ มั่นคง' }
+    ]},
+    { id: 'e2', studentId: 's4', thesisId: 't4', examType: 'FINAL', examDate: '2024-11-01', examTime: '13:00', room: 'ห้องสอบ 201', onlineUrl: '', status: 'COMPLETED', result: 'PASS', committees: [
+      { role: 'CHAIR', advisorId: 'a1', name: 'ผศ. สมชาย ใจดี' }
+    ]}
+  ],
+  documents: [
+    { id: 'd1', studentId: 's1', documentType: 'แบบเสนอหัวข้อ', fileName: 'proposal.pdf', fileId: 'file1', fileUrl: '#', mimeType: 'application/pdf', fileSize: 1024000, uploadedBy: 'u1', version: 1, createdAt: '2024-08-01' },
+    { id: 'd2', studentId: 's1', documentType: 'เค้าโครง', fileName: 'outline_v1.docx', fileId: 'file2', fileUrl: '#', mimeType: 'application/docx', fileSize: 512000, uploadedBy: 'u1', version: 1, createdAt: '2024-11-08' },
+    { id: 'd3', studentId: 's3', documentType: 'เล่มสมบูรณ์', fileName: 'thesis_final.pdf', fileId: 'file3', fileUrl: '#', mimeType: 'application/pdf', fileSize: 5120000, uploadedBy: 'u1', version: 3, createdAt: '2024-11-10' }
+  ],
+  auditLogs: [
+    { id: 'al1', userId: 'u5', userEmail: 'superadmin@demo.ac.th', action: 'login', resource: 'auth', recordId: '', timestamp: '2024-11-17T08:30:00Z' },
+    { id: 'al2', userId: 'u4', userEmail: 'admin@demo.ac.th', action: 'updateStudent', resource: 'student', recordId: 's1', timestamp: '2024-11-17T09:15:00Z' },
+    { id: 'al3', userId: 'u2', userEmail: 'advisor@demo.ac.th', action: 'reviewLogbook', resource: 'logbook', recordId: 'l1', timestamp: '2024-11-16T14:20:00Z' }
+  ],
+  settings: {
+    systemName: 'ระบบติดตามวิทยานิพนธ์และการศึกษาค้นคว้าอิสระ',
+    facultyName: 'คณะศึกษาศาสตร์ มหาวิทยาลัยมหาสารคาม',
+    departmentName: 'ภาควิชาเทคโนโลยีและสื่อสารการศึกษา',
+    maxFileSizeMb: '25',
+    allowedFileTypes: 'pdf,doc,docx,ppt,pptx,jpg,jpeg,png',
+    sessionTimeoutMinutes: '120',
+    academicYearCurrent: '2568',
+    defaultMaxQuota: '8'
+  }
+};
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const UTIL = {
+  uuid() {
+    if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  },
+  formatDate(d) {
+    if (!d) return '-';
+    const date = new Date(d);
+    if (isNaN(date)) return d;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  },
+  formatDateTime(d) {
+    if (!d) return '-';
+    const date = new Date(d);
+    if (isNaN(date)) return d;
+    return UTIL.formatDate(d) + ' ' + String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+  },
+  formatFileSize(bytes) {
+    if (!bytes) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let i = 0;
+    while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+    return bytes.toFixed(1) + ' ' + units[i];
+  },
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+  debounce(fn, delay) {
+    let t;
+    return function(...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), delay);
+    };
+  },
+  storeToken(token) {
+    if (token) localStorage.setItem(CONFIG.TOKEN_KEY, token);
+    else localStorage.removeItem(CONFIG.TOKEN_KEY);
+  },
+  getToken() {
+    return localStorage.getItem(CONFIG.TOKEN_KEY);
+  },
+  storeUser(user) {
+    if (user) localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(CONFIG.USER_KEY);
+  },
+  getStoredUser() {
+    try { return JSON.parse(localStorage.getItem(CONFIG.USER_KEY)); }
+    catch(e) { return null; }
+  }
+};
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+const Toast = {
+  show(message, type = 'info', title = '') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    const icons = {
+      success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>',
+      error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
+      warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+      info: '<svg class="toast-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
+    };
+    toast.innerHTML = `${icons[type] || icons.info}<div class="toast-content"><div class="toast-title">${UTIL.escapeHtml(title || type)}</div><div class="toast-message">${UTIL.escapeHtml(message)}</div></div>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'slideIn 0.3s reverse';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  },
+  success(msg, title) { this.show(msg, 'success', title || 'สำเร็จ'); },
+  error(msg, title) { this.show(msg, 'error', title || 'เกิดข้อผิดพลาด'); },
+  warning(msg, title) { this.show(msg, 'warning', title || 'คำเตือน'); },
+  info(msg, title) { this.show(msg, 'info', title || 'แจ้งเตือน'); }
+};
+
+/* ============================================================
+   LOADING
+   ============================================================ */
+const Loading = {
+  show() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+    STATE.loading = true;
+  },
+  hide() {
+    document.getElementById('loading-overlay').style.display = 'none';
+    STATE.loading = false;
+  }
+};
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+const Modal = {
+  open({ title, body, footer, size }) {
+    const container = document.getElementById('modal-container');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    const modal = document.createElement('div');
+    modal.className = 'modal' + (size === 'lg' ? ' modal-lg' : '');
+    modal.innerHTML = `
+      <div class="modal-header">
+        <h3 class="modal-title">${title}</h3>
+        <button class="modal-close" data-action="close" aria-label="ปิด">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">${body}</div>
+      ${footer ? `<div class="modal-footer">${footer}</div>` : ''}
+    `;
+    overlay.appendChild(modal);
+    container.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('open'));
+
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay || e.target.closest('[data-action="close"]')) {
+        Modal.close(overlay);
+      }
+    });
+    document.addEventListener('keydown', function esc(e) {
+      if (e.key === 'Escape') {
+        Modal.close(overlay);
+        document.removeEventListener('keydown', esc);
+      }
+    });
+    return overlay;
+  },
+  close(overlay) {
+    if (!overlay) overlay = document.querySelector('.modal-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    setTimeout(() => overlay.remove(), 200);
+  },
+  confirm({ title, message, confirmText, confirmClass, onConfirm }) {
+    const overlay = Modal.open({
+      title: title || 'ยืนยันการดำเนินการ',
+      body: `<p>${UTIL.escapeHtml(message)}</p>`,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn ${confirmClass || 'btn-danger'}" data-action="confirm">${confirmText || 'ยืนยัน'}</button>
+      `
+    });
+    overlay.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+      Modal.close(overlay);
+      if (onConfirm) onConfirm();
+    });
+  }
+};
+
+/* ============================================================
+   API
+   ============================================================ */
+const API = {
+  async request(action, data = {}, method = 'POST') {
+    // DEMO_MODE: จำลอง response จาก DEMO_DATA
+    if (CONFIG.DEMO_MODE) {
+      return API.demoRequest(action, data);
+    }
+
+    if (!CONFIG.API_URL) {
+      Toast.error('ยังไม่ได้ตั้งค่า API_URL ใน CONFIG');
+      throw new Error('API_URL not configured');
+    }
+
+    const token = UTIL.getToken();
+    const payload = Object.assign({ action, token }, data);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CONFIG.API_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(CONFIG.API_URL, {
+        method: method,
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+      }
+      const result = await response.json();
+      if (!result.success) {
+        Toast.error(result.message || 'เกิดข้อผิดพลาด');
+      }
+      return result;
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        Toast.error('คำขอหมดเวลา กรุณาลองอีกครั้ง');
+        throw new Error('Request timeout');
+      }
+      Toast.error('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ' + err.message);
+      throw err;
+    }
+  },
+
+  // จำลอง response สำหรับ DEMO_MODE
+  async demoRequest(action, data) {
+    await new Promise(r => setTimeout(r, 300));
+    const user = STATE.currentUser;
+    const isAdmin = user && (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN');
+    const isStudent = user && user.role === 'STUDENT';
+    const isAdvisor = user && user.role === 'ADVISOR';
+
+    const handlers = {
+      login: () => {
+        const found = DEMO_DATA.users.find(u => u.email === data.email);
+        if (!found) return { success: false, message: 'ไม่พบบัญชีผู้ใช้', errorCode: 'USER_NOT_FOUND' };
+        return {
+          success: true,
+          message: 'เข้าสู่ระบบสำเร็จ',
+          data: {
+            token: 'demo_token_' + Date.now(),
+            expiresAt: new Date(Date.now() + 120*60000).toISOString(),
+            user: { id: found.id, email: found.email, displayName: found.displayName, role: found.role, studentId: found.studentId || '', advisorId: found.advisorId || '', status: found.status }
+          }
+        };
+      },
+      getDashboard: () => {
+        let students = DEMO_DATA.students;
+        if (isStudent) students = students.filter(s => s.id === user.studentId);
+        else if (isAdvisor) students = students.filter(s => s.advisorId === user.advisorId);
+        const now = new Date();
+        return {
+          success: true,
+          data: {
+            stats: {
+              totalStudents: students.length,
+              inProgress: students.filter(s => s.status === 'IN_PROGRESS').length,
+              pendingDefense: students.filter(s => s.status === 'PENDING_DEFENSE').length,
+              completed: students.filter(s => s.status === 'COMPLETED').length,
+              overdue: students.filter(s => s.expectedEndDate && new Date(s.expectedEndDate) < now && s.status !== 'COMPLETED').length,
+              documentsPending: 0,
+              logbooksPendingReview: DEMO_DATA.logbooks.filter(l => l.status === 'PENDING').length
+            },
+            stepDistribution: PROGRESS_STEPS.map(st => ({
+              step: st.step, nameTh: st.nameTh,
+              count: students.filter(s => Number(s.currentStep) === st.step).length
+            })),
+            recentActivities: DEMO_DATA.auditLogs.slice(0, 5)
+          }
+        };
+      },
+      listStudents: () => {
+        let students = [...DEMO_DATA.students];
+        if (isStudent) students = students.filter(s => s.id === user.studentId);
+        else if (isAdvisor) students = students.filter(s => s.advisorId === user.advisorId);
+        if (data.search) {
+          const q = data.search.toLowerCase();
+          students = students.filter(s =>
+            s.studentCode.toLowerCase().includes(q) ||
+            s.firstNameTh.toLowerCase().includes(q) ||
+            s.lastNameTh.toLowerCase().includes(q)
+          );
+        }
+        if (data.status) students = students.filter(s => s.status === data.status);
+        if (data.degreeLevel) students = students.filter(s => s.degreeLevel === data.degreeLevel);
+        if (data.currentStep) students = students.filter(s => String(s.currentStep) === String(data.currentStep));
+        const total = students.length;
+        const page = Number(data.page || 1);
+        const pageSize = Number(data.pageSize || CONFIG.PAGE_SIZE);
+        const start = (page - 1) * pageSize;
+        const advisorMap = {};
+        DEMO_DATA.advisors.forEach(a => advisorMap[a.id] = a);
+        const items = students.slice(start, start + pageSize).map(s => {
+          const adv = advisorMap[s.advisorId];
+          return Object.assign({}, s, {
+            advisorName: adv ? (adv.titleTh + ' ' + adv.firstNameTh + ' ' + adv.lastNameTh) : ''
+          });
+        });
+        return {
+          success: true,
+          data: {
+            items,
+            pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) }
+          }
+        };
+      },
+      getStudent: () => {
+        const s = DEMO_DATA.students.find(x => x.id === data.id);
+        if (!s) return { success: false, message: 'ไม่พบนิสิต' };
+        const thesis = DEMO_DATA.theses.find(t => t.id === s.thesisId);
+        const progress = DEMO_DATA.progress.filter(p => p.studentId === s.id);
+        const logbooks = DEMO_DATA.logbooks.filter(l => l.studentId === s.id);
+        const exams = DEMO_DATA.exams.filter(e => e.studentId === s.id);
+        const documents = DEMO_DATA.documents.filter(d => d.studentId === s.id);
+        return { success: true, data: { student: s, thesis, progress, logbooks, exams, documents } };
+      },
+      createStudent: () => {
+        const id = UTIL.uuid();
+        const newS = Object.assign({ id, currentStep: 1, status: 'IN_PROGRESS' }, data);
+        DEMO_DATA.students.push(newS);
+        return { success: true, message: 'เพิ่มนิสิตสำเร็จ', data: { id } };
+      },
+      updateStudent: () => {
+        const s = DEMO_DATA.students.find(x => x.id === data.id);
+        if (!s) return { success: false, message: 'ไม่พบนิสิต' };
+        Object.assign(s, data);
+        return { success: true, message: 'แก้ไขสำเร็จ' };
+      },
+      deleteStudent: () => {
+        const idx = DEMO_DATA.students.findIndex(x => x.id === data.id);
+        if (idx >= 0) DEMO_DATA.students.splice(idx, 1);
+        return { success: true, message: 'ลบสำเร็จ' };
+      },
+      listAdvisors: () => {
+        const advisors = DEMO_DATA.advisors.map(a => Object.assign({}, a));
+        return { success: true, data: { items: advisors } };
+      },
+      createAdvisor: () => {
+        const id = UTIL.uuid();
+        DEMO_DATA.advisors.push(Object.assign({ id, currentCount: 0 }, data));
+        return { success: true, message: 'เพิ่มอาจารย์สำเร็จ', data: { id } };
+      },
+      updateAdvisor: () => {
+        const a = DEMO_DATA.advisors.find(x => x.id === data.id);
+        if (!a) return { success: false, message: 'ไม่พบอาจารย์' };
+        Object.assign(a, data);
+        return { success: true, message: 'แก้ไขสำเร็จ' };
+      },
+      listProgress: () => {
+        let items = DEMO_DATA.progress;
+        if (data.studentId) items = items.filter(p => p.studentId === data.studentId);
+        return { success: true, data: { items, steps: PROGRESS_STEPS } };
+      },
+      saveProgress: () => ({ success: true, message: 'บันทึกความก้าวหน้าสำเร็จ' }),
+      listLogbooks: () => {
+        let items = DEMO_DATA.logbooks;
+        if (data.studentId) items = items.filter(l => l.studentId === data.studentId);
+        if (isStudent) items = items.filter(l => l.studentId === user.studentId);
+        return { success: true, data: { items } };
+      },
+      createLogbook: () => ({ success: true, message: 'สร้าง Logbook สำเร็จ', data: { id: UTIL.uuid() } }),
+      reviewLogbook: () => ({ success: true, message: 'บันทึกผลการตรวจสำเร็จ' }),
+      listExams: () => {
+        let items = DEMO_DATA.exams;
+        if (isStudent) items = items.filter(e => e.studentId === user.studentId);
+        return { success: true, data: { items } };
+      },
+      createExam: () => ({ success: true, message: 'สร้างตารางสอบสำเร็จ', data: { id: UTIL.uuid() } }),
+      updateExam: () => ({ success: true, message: 'แก้ไขตารางสอบสำเร็จ' }),
+      recordExamResult: () => ({ success: true, message: 'บันทึกผลสอบสำเร็จ' }),
+      listDocuments: () => {
+        let items = DEMO_DATA.documents;
+        if (data.studentId) items = items.filter(d => d.studentId === data.studentId);
+        if (isStudent) items = items.filter(d => d.studentId === user.studentId);
+        return { success: true, data: { items } };
+      },
+      listUsers: () => {
+        let users = DEMO_DATA.users;
+        if (user && user.role === 'ADMIN') users = users.filter(u => u.role !== 'SUPER_ADMIN');
+        return { success: true, data: { items: users.map(u => ({ id: u.id, email: u.email, displayName: u.displayName, role: u.role, status: u.status, studentId: u.studentId || '', advisorId: u.advisorId || '' })) } };
+      },
+      createUser: () => ({ success: true, message: 'สร้างบัญชีสำเร็จ', data: { id: UTIL.uuid() } }),
+      updateUserRole: () => ({ success: true, message: 'อัปเดตบทบาทสำเร็จ' }),
+      getAuditLogs: () => {
+        const items = DEMO_DATA.auditLogs;
+        const total = items.length;
+        return { success: true, data: { items, pagination: { page: 1, pageSize: 50, total, totalPages: 1 } } };
+      },
+      getSettings: () => ({ success: true, data: { settings: DEMO_DATA.settings } }),
+      updateSettings: () => ({ success: true, message: 'อัปเดตการตั้งค่าสำเร็จ' }),
+      healthCheck: () => ({ success: true, message: 'ระบบทำงานปกติ (DEMO)', data: { version: '1.0.0-demo' } })
+    };
+
+    const handler = handlers[action];
+    if (!handler) return { success: false, message: 'ไม่รองรับ action ในโหมดสาธิต: ' + action };
+    return handler();
+  }
+};
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+const AUTH = {
+  async login(email, password, googleSub) {
+    const result = await API.request('login', { email, password, googleSub });
+    if (result.success) {
+      STATE.currentUser = result.data.user;
+      STATE.currentToken = result.data.token;
+      UTIL.storeToken(result.data.token);
+      UTIL.storeUser(result.data.user);
+    }
+    return result;
+  },
+
+  async logout() {
+    try {
+      if (!CONFIG.DEMO_MODE && STATE.currentToken) {
+        await API.request('logout', { token: STATE.currentToken });
+      }
+    } catch(e) { /* ignore */ }
+    STATE.currentUser = null;
+    STATE.currentToken = null;
+    UTIL.storeToken(null);
+    UTIL.storeUser(null);
+    ROUTER.navigate('login');
+  },
+
+  async checkSession() {
+    const token = UTIL.getToken();
+    const stored = UTIL.getStoredUser();
+    if (!token || !stored) return false;
+    STATE.currentUser = stored;
+    STATE.currentToken = token;
+    if (!CONFIG.DEMO_MODE) {
+      try {
+        const result = await API.request('getSession', {}, 'POST');
+        if (!result.success) {
+          AUTH.logout();
+          return false;
+        }
+        STATE.currentUser = result.data;
+        UTIL.storeUser(result.data);
+      } catch(e) {
+        // อนุญาตให้ใช้ stored user ต่อถ้าเน็ตมีปัญหา
+      }
+    }
+    return true;
+  },
+
+  hasRole(roles) {
+    if (!STATE.currentUser) return false;
+    if (typeof roles === 'string') roles = [roles];
+    return roles.indexOf(STATE.currentUser.role) >= 0;
+  },
+
+  can(action) {
+    if (!STATE.currentUser) return false;
+    const role = STATE.currentUser.role;
+    if (role === ROLES.SUPER_ADMIN) return true;
+    const perms = {
+      STUDENT: ['viewOwnStudent', 'viewDashboard', 'listStudents', 'getStudent', 'listLogbooks', 'createLogbook', 'listDocuments', 'uploadDocument', 'listExams', 'viewProgress'],
+      ADVISOR: ['viewOwnStudent', 'viewDashboard', 'listStudents', 'getStudent', 'listLogbooks', 'reviewLogbook', 'listDocuments', 'listExams', 'viewProgress', 'saveProgress'],
+      STAFF: ['viewOwnStudent', 'viewDashboard', 'listStudents', 'getStudent', 'createStudent', 'updateStudent', 'listAdvisors', 'listExams', 'createExam', 'updateExam', 'listDocuments', 'exportStudents', 'viewProgress'],
+      ADMIN: ['viewOwnStudent', 'viewDashboard', 'listStudents', 'getStudent', 'createStudent', 'updateStudent', 'deleteStudent', 'listAdvisors', 'createAdvisor', 'updateAdvisor', 'listExams', 'createExam', 'updateExam', 'listDocuments', 'exportStudents', 'viewProgress', 'saveProgress', 'listUsers', 'getAuditLogs', 'getSettings'],
+      SUPER_ADMIN: ['*']
+    };
+    const allowed = perms[role] || [];
+    return allowed.indexOf('*') >= 0 || allowed.indexOf(action) >= 0;
+  }
+};
+
+/* ============================================================
+   VALIDATION
+   ============================================================ */
+const VALIDATION = {
+  required(value) { return value !== null && value !== undefined && String(value).trim() !== ''; },
+  email(value) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); },
+  minLength(value, n) { return String(value || '').length >= n; },
+  maxLength(value, n) { return String(value || '').length <= n; },
+  studentCode(value) { return /^[0-9]{7,8}$/.test(value); },
+  phone(value) { return /^[0-9\-+\s]{9,15}$/.test(value); },
+
+  validateForm(formEl, rules) {
+    let valid = true;
+    const errors = {};
+    Object.keys(rules).forEach(field => {
+      const input = formEl.querySelector(`[name="${field}"]`);
+      const value = input ? input.value : '';
+      const fieldRules = rules[field];
+      for (const rule of fieldRules) {
+        const { type, param, message } = rule;
+        let ok = true;
+        if (type === 'required') ok = VALIDATION.required(value);
+        else if (type === 'email') ok = VALIDATION.email(value);
+        else if (type === 'minLength') ok = VALIDATION.minLength(value, param);
+        else if (type === 'maxLength') ok = VALIDATION.maxLength(value, param);
+        else if (type === 'studentCode') ok = VALIDATION.studentCode(value);
+        else if (type === 'phone') ok = VALIDATION.phone(value);
+        if (!ok) {
+          valid = false;
+          errors[field] = message;
+          if (input) input.classList.add('invalid');
+          break;
+        } else if (input) {
+          input.classList.remove('invalid');
+        }
+      }
+    });
+    return { valid, errors };
+  }
+};
+
+/* ============================================================
+   ICONS
+   ============================================================ */
+const ICONS = {
+  dashboard: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>',
+  student: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
+  advisor: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>',
+  logbook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>',
+  exam: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>',
+  document: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
+  audit: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.11 0-2 .89-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm-2 16H7v-2h10v2zm0-4H7v-2h10v2zm-2-4h-2V9h-2v2h-2V9H9V7h2V5h2v2h2v2h2v2z"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>',
+  logout: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>',
+  add: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+  delete: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>',
+  download: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>',
+  warning: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>',
+  empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 11H4M20 11V7a2 2 0 00-2-2H6a2 2 0 00-2 2v4M20 11v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6"/></svg>',
+  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>'
+};
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+const ROUTER = {
+  navigate(route, params = {}) {
+    STATE.currentRoute = route;
+    STATE.currentData = params;
+    if (STATE.currentUser) {
+      UI.render();
+    } else {
+      UI.renderLogin();
+    }
+  },
+
+  getMenuItems() {
+    const role = STATE.currentUser ? STATE.currentUser.role : '';
+    const items = [
+      { route: 'dashboard', label: 'Dashboard', icon: ICONS.dashboard, roles: ['STUDENT','ADVISOR','STAFF','ADMIN','SUPER_ADMIN'] },
+      { route: 'students', label: 'รายชื่อนิสิต', icon: ICONS.student, roles: ['STUDENT','ADVISOR','STAFF','ADMIN','SUPER_ADMIN'] },
+      { route: 'advisors', label: 'จัดการอาจารย์', icon: ICONS.advisor, roles: ['STAFF','ADMIN','SUPER_ADMIN'] },
+      { route: 'logbook', label: 'Logbook', icon: ICONS.logbook, roles: ['STUDENT','ADVISOR','ADMIN','SUPER_ADMIN'] },
+      { route: 'exams', label: 'ตารางสอบ', icon: ICONS.exam, roles: ['STUDENT','ADVISOR','STAFF','ADMIN','SUPER_ADMIN'] },
+      { route: 'documents', label: 'เอกสาร', icon: ICONS.document, roles: ['STUDENT','ADVISOR','STAFF','ADMIN','SUPER_ADMIN'] },
+      { route: 'users', label: 'ผู้ใช้และสิทธิ์', icon: ICONS.user, roles: ['ADMIN','SUPER_ADMIN'] },
+      { route: 'audit', label: 'Audit Log', icon: ICONS.audit, roles: ['ADMIN','SUPER_ADMIN'] },
+      { route: 'settings', label: 'ตั้งค่าระบบ', icon: ICONS.settings, roles: ['SUPER_ADMIN'] }
+    ];
+    return items.filter(item => item.roles.indexOf(role) >= 0);
+  }
+};
+
+/* ============================================================
+   UI - MAIN RENDER
+   ============================================================ */
+const UI = {
+  renderLogin() {
+    document.getElementById('app').innerHTML = `
+      <div class="login-page">
+        <div class="login-card">
+          <div class="login-header">
+            ${ICONS.book}
+            <h1>${CONFIG.APP_NAME}</h1>
+            <p>${CONFIG.DEPARTMENT}<br>${CONFIG.FACULTY}</p>
+          </div>
+          <div class="login-body">
+            ${CONFIG.DEMO_MODE ? `
+              <div class="badge badge-warning" style="display:block;margin-bottom:16px;padding:10px;text-align:center;">
+                โหมดสาธิต (DEMO MODE) - บัญชีตัวอย่างที่ใช้เข้าสู่ระบบแสดงด้านล่าง
+              </div>
+            ` : ''}
+            <form id="login-form">
+              <div class="form-group">
+                <label class="form-label" for="email">อีเมล <span class="required">*</span></label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="email@msu.ac.th" autocomplete="email" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="password">รหัสผ่าน <span class="required">*</span></label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="กรอกรหัสผ่าน" autocomplete="current-password">
+                <div class="form-help">เว้นว่างได้หากใช้ Google Login ผ่านระบบ</div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn">
+                เข้าสู่ระบบ
+              </button>
+            </form>
+            ${CONFIG.DEMO_MODE ? `
+              <div class="login-divider">บัญชีสาธิต</div>
+              <div class="grid-2" style="gap:8px;">
+                ${DEMO_DATA.users.map(u => `
+                  <button class="btn btn-secondary btn-sm" data-demo-email="${UTIL.escapeHtml(u.email)}">
+                    ${ROLE_LABELS[u.role] || u.role}<br><small>${UTIL.escapeHtml(u.email)}</small>
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+          <div class="login-footer">
+            &copy; ${new Date().getFullYear()} ${CONFIG.FACULTY}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Bind events
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email) { Toast.error('กรุณาระบุอีเมล'); return; }
+
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังเข้าสู่ระบบ...';
+
+      try {
+        const result = await AUTH.login(email, password);
+        if (result.success) {
+          Toast.success('ยินดีต้อนรับ ' + result.data.user.displayName);
+          ROUTER.navigate('dashboard');
+        } else {
+          Toast.error(result.message || 'เข้าสู่ระบบไม่สำเร็จ');
+        }
+      } catch(err) {
+        Toast.error('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'เข้าสู่ระบบ';
+      }
+    });
+
+    // Demo account buttons
+    document.querySelectorAll('[data-demo-email]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('email').value = btn.dataset.demoEmail;
+        document.getElementById('password').value = 'demo1234';
+        document.getElementById('login-form').dispatchEvent(new Event('submit'));
+      });
+    });
+  },
+
+  render() {
+    if (!STATE.currentUser) {
+      UI.renderLogin();
+      return;
+    }
+    const menuItems = ROUTER.getMenuItems();
+    const u = STATE.currentUser;
+    const initials = u.displayName.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+    document.getElementById('app').innerHTML = `
+      ${CONFIG.DEMO_MODE ? '<div class="demo-banner">โหมดสาธิต (DEMO MODE) - ข้อมูลเป็นตัวอย่าง ไม่ได้เชื่อมต่อ Google Sheets จริง</div>' : ''}
+      <div class="app">
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-logo">
+              ${ICONS.book}
+              <div>
+                <div>ระบบติดตาม<br>วิทยานิพนธ์</div>
+                <div class="sidebar-subtitle">${CONFIG.DEPARTMENT}</div>
+              </div>
+            </div>
+          </div>
+          <nav class="nav">
+            ${menuItems.map(item => `
+              <button class="nav-item ${STATE.currentRoute === item.route ? 'active' : ''}" data-route="${item.route}">
+                ${item.icon}<span>${item.label}</span>
+              </button>
+            `).join('')}
+          </nav>
+          <div style="padding:12px;">
+            <button class="nav-item" id="logout-btn" style="width:100%;">
+              ${ICONS.logout}<span>ออกจากระบบ</span>
+            </button>
+          </div>
+        </aside>
+        <main class="main">
+          <header class="header">
+            <div class="header-left">
+              <button class="menu-toggle" id="menu-toggle" aria-label="เปิดเมนู">
+                ${ICONS.menu}
+              </button>
+              <div class="page-title" id="page-title">${UI.getPageTitle()}</div>
+            </div>
+            <div class="header-right">
+              <div class="user-chip">
+                <div class="user-avatar">${initials}</div>
+                <div class="user-info">
+                  <div class="user-name">${UTIL.escapeHtml(u.displayName)}</div>
+                  <span class="user-role">${ROLE_LABELS[u.role] || u.role}</span>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div class="content" id="content"></div>
+        </main>
+      </div>
+    `;
+
+    // Bind nav
+    document.querySelectorAll('.nav-item[data-route]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ROUTER.navigate(btn.dataset.route);
+        // close mobile sidebar
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-backdrop').classList.remove('show');
+      });
+    });
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Modal.confirm({
+        title: 'ออกจากระบบ',
+        message: 'คุณต้องการออกจากระบบใช่หรือไม่?',
+        confirmText: 'ออกจากระบบ',
+        confirmClass: 'btn-secondary',
+        onConfirm: () => AUTH.logout()
+      });
+    });
+    document.getElementById('menu-toggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-backdrop').classList.toggle('show');
+    });
+    document.getElementById('sidebar-backdrop').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-backdrop').classList.remove('show');
+    });
+
+    // Render content based on route
+    UI.renderContent();
+  },
+
+  getPageTitle() {
+    const titles = {
+      dashboard: 'Dashboard',
+      students: 'รายชื่อนิสิต',
+      studentDetail: 'รายละเอียดนิสิต',
+      advisors: 'จัดการอาจารย์',
+      logbook: 'Logbook - บันทึกความก้าวหน้า',
+      exams: 'ตารางสอบ',
+      documents: 'เอกสาร',
+      users: 'จัดการผู้ใช้และสิทธิ์',
+      audit: 'Audit Log',
+      settings: 'ตั้งค่าระบบ'
+    };
+    return titles[STATE.currentRoute] || 'Dashboard';
+  },
+
+  renderContent() {
+    const content = document.getElementById('content');
+    if (!content) return;
+    const route = STATE.currentRoute;
+    if (route === 'dashboard') PAGES.dashboard(content);
+    else if (route === 'students') PAGES.students(content);
+    else if (route === 'studentDetail') PAGES.studentDetail(content);
+    else if (route === 'advisors') PAGES.advisors(content);
+    else if (route === 'logbook') PAGES.logbook(content);
+    else if (route === 'exams') PAGES.exams(content);
+    else if (route === 'documents') PAGES.documents(content);
+    else if (route === 'users') PAGES.users(content);
+    else if (route === 'audit') PAGES.audit(content);
+    else if (route === 'settings') PAGES.settings(content);
+    else PAGES.dashboard(content);
+  }
+};
+
+/* ============================================================
+   PAGES - แต่ละหน้าจอ
+   ============================================================ */
+const PAGES = {
+
+  // ---------- DASHBOARD ----------
+  async dashboard(container) {
+    container.innerHTML = `
+      <div class="grid-2 mb-4"><div class="skeleton-block"></div><div class="skeleton-block"></div></div>
+      <div class="stats-grid"><div class="skeleton-block"></div><div class="skeleton-block"></div><div class="skeleton-block"></div><div class="skeleton-block"></div></div>
+    `;
+    try {
+      const result = await API.request('getDashboard');
+      if (!result.success) throw new Error(result.message);
+      const d = result.data;
+      const s = d.stats;
+
+      container.innerHTML = `
+        <div class="stats-grid mb-4">
+          <div class="stat-card">
+            <div class="stat-label">จำนวนผู้เรียนทั้งหมด</div>
+            <div class="stat-value">${s.totalStudents}</div>
+            <div class="stat-icon">${ICONS.student}</div>
+          </div>
+          <div class="stat-card info">
+            <div class="stat-label">กำลังดำเนินการ</div>
+            <div class="stat-value">${s.inProgress}</div>
+            <div class="stat-icon">${ICONS.clock}</div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-label">รอสอบปากเปล่า</div>
+            <div class="stat-value">${s.pendingDefense}</div>
+            <div class="stat-icon">${ICONS.exam}</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-label">สำเร็จการศึกษา</div>
+            <div class="stat-value">${s.completed}</div>
+            <div class="stat-icon">${ICONS.check}</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-label">จำนวนที่เกินกำหนด</div>
+            <div class="stat-value">${s.overdue}</div>
+            <div class="stat-icon">${ICONS.warning}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">เอกสารรอตรวจ</div>
+            <div class="stat-value">${s.documentsPending}</div>
+            <div class="stat-icon">${ICONS.document}</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">กราฟสรุปจำนวนผู้เรียนตามขั้นตอน</h3></div>
+            <div class="card-body">
+              ${d.stepDistribution.map(item => `
+                <div class="mb-3">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm">ขั้นที่ ${item.step}: ${UTIL.escapeHtml(item.nameTh)}</span>
+                    <strong>${item.count} คน</strong>
+                  </div>
+                  <div class="progress-bar-wrapper">
+                    <div class="progress-bar" style="width:${(item.count / Math.max(s.totalStudents,1) * 100).toFixed(0)}%"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">รายการกิจกรรมล่าสุด</h3></div>
+            <div class="card-body">
+              ${d.recentActivities && d.recentActivities.length > 0 ? d.recentActivities.map(a => `
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="stat-icon" style="position:static;width:32px;height:32px;">${ICONS.audit}</div>
+                  <div class="flex-1">
+                    <div class="text-sm"><strong>${UTIL.escapeHtml(a.userEmail || '-')}</strong> ${UTIL.escapeHtml(a.action)}</div>
+                    <div class="text-sm text-muted">${UTIL.formatDateTime(a.timestamp)}</div>
+                  </div>
+                </div>
+              `).join('') : '<div class="empty-state"><p>ยังไม่มีกิจกรรม</p></div>'}
+            </div>
+          </div>
+        </div>
+      `;
+    } catch(err) {
+      container.innerHTML = `<div class="error-state">${ICONS.error}<h3>ไม่สามารถโหลดข้อมูลได้</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  // ---------- STUDENTS LIST ----------
+  async students(container) {
+    STATE.filters.students = STATE.filters.students || {};
+    STATE.pagination.page = 1;
+
+    const renderFilters = () => `
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">ค้นหา</label>
+              <input type="text" id="filter-search" class="form-control" placeholder="รหัสนิสิต ชื่อ นามสกุล อีเมล" value="${UTIL.escapeHtml(STATE.filters.students.search || '')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ระดับปริญญา</label>
+              <select id="filter-degreeLevel" class="form-control">
+                <option value="">ทั้งหมด</option>
+                <option value="ปริญญาโท" ${STATE.filters.students.degreeLevel === 'ปริญญาโท' ? 'selected' : ''}>ปริญญาโท</option>
+                <option value="ปริญญาเอก" ${STATE.filters.students.degreeLevel === 'ปริญญาเอก' ? 'selected' : ''}>ปริญญาเอก</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">สถานะ</label>
+              <select id="filter-status" class="form-control">
+                <option value="">ทั้งหมด</option>
+                ${Object.keys(STATUS_LABELS).map(k => `<option value="${k}" ${STATE.filters.students.status === k ? 'selected' : ''}>${STATUS_LABELS[k].label}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ขั้นตอนปัจจุบัน</label>
+              <select id="filter-currentStep" class="form-control">
+                <option value="">ทั้งหมด</option>
+                ${PROGRESS_STEPS.map(s => `<option value="${s.step}" ${String(STATE.filters.students.currentStep) === String(s.step) ? 'selected' : ''}>ขั้นที่ ${s.step}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;">
+              <button class="btn btn-primary" id="apply-filter">${ICONS.search} ค้นหา</button>
+            </div>
+            ${AUTH.can('createStudent') ? `
+              <div class="form-group" style="display:flex;align-items:flex-end;">
+                <button class="btn btn-success" id="add-student-btn">${ICONS.add} เพิ่มนิสิต</button>
+              </div>
+            ` : ''}
+            ${AUTH.can('exportStudents') ? `
+              <div class="form-group" style="display:flex;align-items:flex-end;">
+                <button class="btn btn-secondary" id="export-students-btn">${ICONS.download} ส่งออก CSV</button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = renderFilters() + `<div id="students-table-area"><div class="skeleton-block"></div></div>`;
+
+    document.getElementById('apply-filter').addEventListener('click', () => {
+      STATE.filters.students.search = document.getElementById('filter-search').value;
+      STATE.filters.students.degreeLevel = document.getElementById('filter-degreeLevel').value;
+      STATE.filters.students.status = document.getElementById('filter-status').value;
+      STATE.filters.students.currentStep = document.getElementById('filter-currentStep').value;
+      STATE.pagination.page = 1;
+      PAGES.students_renderTable();
+    });
+
+    const addBtn = document.getElementById('add-student-btn');
+    if (addBtn) addBtn.addEventListener('click', () => PAGES.studentForm(null));
+
+    const exportBtn = document.getElementById('export-students-btn');
+    if (exportBtn) exportBtn.addEventListener('click', () => PAGES.exportStudents());
+
+    PAGES.students_renderTable();
+  },
+
+  async students_renderTable() {
+    const area = document.getElementById('students-table-area');
+    if (!area) return;
+    area.innerHTML = `<div class="card"><div class="card-body"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>`;
+
+    try {
+      const filters = STATE.filters.students || {};
+      const result = await API.request('listStudents', {
+        search: filters.search,
+        degreeLevel: filters.degreeLevel,
+        status: filters.status,
+        currentStep: filters.currentStep,
+        page: STATE.pagination.page,
+        pageSize: STATE.pagination.pageSize
+      });
+      if (!result.success) throw new Error(result.message);
+
+      const { items, pagination } = result.data;
+      STATE.pagination = pagination;
+
+      if (items.length === 0) {
+        area.innerHTML = `
+          <div class="card">
+            <div class="empty-state">
+              ${ICONS.empty}
+              <h3>ไม่พบนิสิต</h3>
+              <p>ลองปรับเงื่อนไขการค้นหา หรือเพิ่มนิสิตใหม่</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      area.innerHTML = `
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>รหัสนิสิต</th>
+                  <th>ชื่อ-นามสกุล</th>
+                  <th>ระดับ</th>
+                  <th>อาจารย์ที่ปรึกษา</th>
+                  <th>ขั้นที่</th>
+                  <th>สถานะ</th>
+                  <th>วันที่เริ่ม</th>
+                  <th>กำหนดส่ง</th>
+                  <th>การจัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(s => {
+                  const st = STATUS_LABELS[s.status] || { label: s.status, class: 'badge-default' };
+                  return `
+                  <tr>
+                    <td><strong>${UTIL.escapeHtml(s.studentCode)}</strong></td>
+                    <td>${UTIL.escapeHtml(s.titleTh)} ${UTIL.escapeHtml(s.firstNameTh)} ${UTIL.escapeHtml(s.lastNameTh)}</td>
+                    <td>${UTIL.escapeHtml(s.degreeLevel)}</td>
+                    <td>${UTIL.escapeHtml(s.advisorName || '-')}</td>
+                    <td><span class="badge badge-purple">${s.currentStep}/5</span></td>
+                    <td><span class="badge ${st.class}">${st.label}</span></td>
+                    <td>${UTIL.formatDate(s.startDate)}</td>
+                    <td>${UTIL.formatDate(s.expectedEndDate)}</td>
+                    <td>
+                      <div class="flex gap-2">
+                        <button class="btn btn-icon btn-secondary btn-sm" data-action="view" data-id="${s.id}" title="ดูรายละเอียด">${ICONS.eye}</button>
+                        ${AUTH.can('updateStudent') ? `<button class="btn btn-icon btn-secondary btn-sm" data-action="edit" data-id="${s.id}" title="แก้ไข">${ICONS.edit}</button>` : ''}
+                        ${AUTH.can('deleteStudent') ? `<button class="btn btn-icon btn-danger btn-sm" data-action="delete" data-id="${s.id}" title="ลบ">${ICONS.delete}</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <div class="pagination">
+              <button ${pagination.page <= 1 ? 'disabled' : ''} data-page="${pagination.page - 1}">ก่อนหน้า</button>
+              ${Array.from({length: Math.min(pagination.totalPages, 5)}, (_,i) => i + 1).map(p => `
+                <button class="${p === pagination.page ? 'active' : ''}" data-page="${p}">${p}</button>
+              `).join('')}
+              <button ${pagination.page >= pagination.totalPages ? 'disabled' : ''} data-page="${pagination.page + 1}">ถัดไป</button>
+              <span class="pagination-info">หน้า ${pagination.page}/${pagination.totalPages} (ทั้งหมด ${pagination.total} รายการ)</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Bind actions
+      area.querySelectorAll('[data-action="view"]').forEach(btn => {
+        btn.addEventListener('click', () => ROUTER.navigate('studentDetail', { id: btn.dataset.id }));
+      });
+      area.querySelectorAll('[data-action="edit"]').forEach(btn => {
+        btn.addEventListener('click', () => PAGES.studentForm(btn.dataset.id));
+      });
+      area.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          Modal.confirm({
+            title: 'ยืนยันการลบนิสิต',
+            message: 'คุณแน่ใจหรือไม่ว่าต้องการลบนิสิตรายนี้? (ข้อมูลจะถูก Soft Delete)',
+            confirmText: 'ลบ',
+            onConfirm: async () => {
+              try {
+                const res = await API.request('deleteStudent', { id: btn.dataset.id });
+                if (res.success) {
+                  Toast.success('ลบนิสิตสำเร็จ');
+                  PAGES.students_renderTable();
+                }
+              } catch(e) {}
+            }
+          });
+        });
+      });
+      area.querySelectorAll('.pagination button[data-page]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          STATE.pagination.page = Number(btn.dataset.page);
+          PAGES.students_renderTable();
+        });
+      });
+
+    } catch(err) {
+      area.innerHTML = `<div class="card"><div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div></div>`;
+    }
+  },
+
+  async studentForm(id) {
+    let student = null;
+    let advisors = [];
+    if (id) {
+      try {
+        const res = await API.request('getStudent', { id });
+        if (res.success) student = res.data.student;
+        const advRes = await API.request('listAdvisors');
+        if (advRes.success) advisors = advRes.data.items;
+      } catch(e) { Toast.error('โหลดข้อมูลไม่สำเร็จ'); return; }
+    } else {
+      try {
+        const advRes = await API.request('listAdvisors');
+        if (advRes.success) advisors = advRes.data.items;
+      } catch(e) {}
+    }
+
+    const titleOptions = ['นาย','นาง','นางสาว','ดร.','อ.'].map(t =>
+      `<option value="${t}" ${student && student.titleTh === t ? 'selected' : ''}>${t}</option>`
+    ).join('');
+
+    const body = `
+      <form id="student-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">รหัสนิสิต <span class="required">*</span></label>
+            <input type="text" name="studentCode" class="form-control" value="${student ? UTIL.escapeHtml(student.studentCode) : ''}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">คำนำหน้า</label>
+            <select name="titleTh" class="form-control">${titleOptions}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ชื่อ (ไทย) <span class="required">*</span></label>
+            <input type="text" name="firstNameTh" class="form-control" value="${student ? UTIL.escapeHtml(student.firstNameTh) : ''}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">นามสกุล (ไทย) <span class="required">*</span></label>
+            <input type="text" name="lastNameTh" class="form-control" value="${student ? UTIL.escapeHtml(student.lastNameTh) : ''}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">First Name (EN)</label>
+            <input type="text" name="firstNameEn" class="form-control" value="${student ? UTIL.escapeHtml(student.firstNameEn || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name (EN)</label>
+            <input type="text" name="lastNameEn" class="form-control" value="${student ? UTIL.escapeHtml(student.lastNameEn || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมล</label>
+            <input type="email" name="email" class="form-control" value="${student ? UTIL.escapeHtml(student.email || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">เบอร์โทร</label>
+            <input type="tel" name="phone" class="form-control" value="${student ? UTIL.escapeHtml(student.phone || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ระดับปริญญา <span class="required">*</span></label>
+            <select name="degreeLevel" class="form-control" required>
+              <option value="">-- เลือก --</option>
+              <option value="ปริญญาโท" ${student && student.degreeLevel === 'ปริญญาโท' ? 'selected' : ''}>ปริญญาโท</option>
+              <option value="ปริญญาเอก" ${student && student.degreeLevel === 'ปริญญาเอก' ? 'selected' : ''}>ปริญญาเอก</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">หลักสูตร</label>
+            <input type="text" name="program" class="form-control" value="${student ? UTIL.escapeHtml(student.program || '') : 'เทคโนโลยีและสื่อสารการศึกษา'}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">แผนการเรียน</label>
+            <select name="studyPlan" class="form-control">
+              <option value="">-- เลือก --</option>
+              <option value="แผน ก" ${student && student.studyPlan === 'แผน ก' ? 'selected' : ''}>แผน ก (วิทยานิพนธ์)</option>
+              <option value="แผน ข" ${student && student.studyPlan === 'แผน ข' ? 'selected' : ''}>แผน ข (การศึกษาค้นคว้าอิสระ)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ปีการศึกษาที่เข้า</label>
+            <input type="text" name="academicYear" class="form-control" value="${student ? UTIL.escapeHtml(student.academicYear || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">อาจารย์ที่ปรึกษาหลัก</label>
+            <select name="advisorId" class="form-control">
+              <option value="">-- เลือก --</option>
+              ${advisors.map(a => `<option value="${a.id}" ${student && student.advisorId === a.id ? 'selected' : ''}>${UTIL.escapeHtml(a.titleTh + ' ' + a.firstNameTh + ' ' + a.lastNameTh)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">อาจารย์ที่ปรึกษาร่วม</label>
+            <select name="coAdvisorId" class="form-control">
+              <option value="">-- ไม่มี --</option>
+              ${advisors.map(a => `<option value="${a.id}" ${student && student.coAdvisorId === a.id ? 'selected' : ''}>${UTIL.escapeHtml(a.titleTh + ' ' + a.firstNameTh + ' ' + a.lastNameTh)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">สถานะ</label>
+            <select name="status" class="form-control">
+              ${Object.keys(STATUS_LABELS).map(k => `<option value="${k}" ${student && student.status === k ? 'selected' : (!student && k === 'IN_PROGRESS' ? 'selected' : '')}>${STATUS_LABELS[k].label}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่เริ่มต้น</label>
+            <input type="date" name="startDate" class="form-control" value="${student ? student.startDate : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่คาดว่าจะสำเร็จ</label>
+            <input type="date" name="expectedEndDate" class="form-control" value="${student ? student.expectedEndDate : ''}">
+          </div>
+        </div>
+        ${!student ? `
+          <div class="form-group">
+            <label class="form-label">หัวข้อวิทยานิพนธ์ (ภาษาไทย)</label>
+            <input type="text" name="titleTh" class="form-control" placeholder="กรอกเพื่อสร้างหัวข้อพร้อมนิสิต">
+          </div>
+          <div class="form-group">
+            <label class="form-label">หัวข้อ (English)</label>
+            <input type="text" name="titleEn" class="form-control">
+          </div>
+        ` : ''}
+        <div class="form-group">
+          <label class="form-label">หมายเหตุ</label>
+          <textarea name="notes" class="form-control">${student ? UTIL.escapeHtml(student.notes || '') : ''}</textarea>
+        </div>
+      </form>
+    `;
+
+    const overlay = Modal.open({
+      title: id ? 'แก้ไขข้อมูลนิสิต' : 'เพิ่มนิสิตใหม่',
+      body,
+      size: 'lg',
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-student-btn">${id ? 'บันทึกการแก้ไข' : 'เพิ่มนิสิต'}</button>
+      `
+    });
+
+    document.getElementById('save-student-btn').addEventListener('click', async () => {
+      const form = document.getElementById('student-form');
+      const { valid, errors } = VALIDATION.validateForm(form, {
+        studentCode: [{ type: 'required', message: 'กรุณาระบุรหัสนิสิต' }],
+        firstNameTh: [{ type: 'required', message: 'กรุณาระบุชื่อ' }],
+        lastNameTh: [{ type: 'required', message: 'กรุณาระบุนามสกุล' }],
+        degreeLevel: [{ type: 'required', message: 'กรุณาระบุระดับปริญญา' }]
+      });
+      if (!valid) {
+        Toast.error(Object.values(errors)[0]);
+        return;
+      }
+
+      const btn = document.getElementById('save-student-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((v, k) => data[k] = v);
+      if (id) data.id = id;
+
+      try {
+        const result = await API.request(id ? 'updateStudent' : 'createStudent', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          PAGES.students_renderTable();
+        } else {
+          Toast.error(result.message);
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = id ? 'บันทึกการแก้ไข' : 'เพิ่มนิสิต';
+      }
+    });
+  },
+
+  async exportStudents() {
+    Loading.show();
+    try {
+      // เรียก listStudents ทั้งหมด
+      const filters = STATE.filters.students || {};
+      const result = await API.request('listStudents', Object.assign({}, filters, { page: 1, pageSize: 1000 }));
+      if (!result.success) throw new Error(result.message);
+      const items = result.data.items;
+
+      const headers = ['รหัสนิสิต','คำนำหน้า','ชื่อ','นามสกุล','First Name','Last Name','อีเมล','เบอร์โทร','ระดับปริญญา','หลักสูตร','แผน','ปีการศึกษา','อาจารย์ที่ปรึกษา','ขั้นปัจจุบัน','สถานะ','วันที่เริ่ม','วันที่คาดสำเร็จ','วันที่สำเร็จจริง','หมายเหตุ'];
+      const rows = [headers.join(',')];
+      items.forEach(s => {
+        const row = [s.studentCode, s.titleTh, s.firstNameTh, s.lastNameTh, s.firstNameEn, s.lastNameEn, s.email, s.phone, s.degreeLevel, s.program, s.studyPlan, s.academicYear, s.advisorName, s.currentStep, s.status, s.startDate, s.expectedEndDate, s.actualEndDate, (s.notes || '').replace(/[\n,]/g, ' ')];
+        rows.push(row.map(v => {
+          const str = String(v || '');
+          if (str.indexOf(',') >= 0 || str.indexOf('"') >= 0) return '"' + str.replace(/"/g,'""') + '"';
+          return str;
+        }).join(','));
+      });
+      const csv = '\uFEFF' + rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'students_export_' + new Date().toISOString().slice(0,10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      Toast.success('ส่งออก CSV สำเร็จ (' + items.length + ' รายการ)');
+    } catch(e) {
+      Toast.error('ส่งออกไม่สำเร็จ: ' + e.message);
+    } finally {
+      Loading.hide();
+    }
+  },
+
+  // ---------- STUDENT DETAIL ----------
+  async studentDetail(container) {
+    const id = STATE.currentData.id;
+    container.innerHTML = `<div class="card"><div class="card-body"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>`;
+    try {
+      const result = await API.request('getStudent', { id });
+      if (!result.success) throw new Error(result.message);
+      const { student, thesis, progress, logbooks, exams, documents } = result.data;
+
+      const st = STATUS_LABELS[student.status] || { label: student.status, class: 'badge-default' };
+      const completedSteps = progress.filter(p => p.status === 'COMPLETED').length;
+      const progressPct = Math.round((completedSteps / 5) * 100);
+
+      container.innerHTML = `
+        <div class="flex gap-3 mb-4 flex-wrap items-center">
+          <button class="btn btn-secondary" id="back-to-list">← กลับสู่รายการ</button>
+          ${AUTH.can('updateStudent') ? `<button class="btn btn-primary" id="edit-student">${ICONS.edit} แก้ไข</button>` : ''}
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3 class="card-title">ข้อมูลนิสิต</h3>
+            <span class="badge ${st.class}">${st.label}</span>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div><strong>รหัสนิสิต:</strong> ${UTIL.escapeHtml(student.studentCode)}</div>
+              <div><strong>ชื่อ-นามสกุล:</strong> ${UTIL.escapeHtml(student.titleTh)} ${UTIL.escapeHtml(student.firstNameTh)} ${UTIL.escapeHtml(student.lastNameTh)}</div>
+              <div><strong>English:</strong> ${UTIL.escapeHtml(student.firstNameEn || '-')} ${UTIL.escapeHtml(student.lastNameEn || '')}</div>
+              <div><strong>อีเมล:</strong> ${UTIL.escapeHtml(student.email || '-')}</div>
+              <div><strong>เบอร์โทร:</strong> ${UTIL.escapeHtml(student.phone || '-')}</div>
+              <div><strong>ระดับ:</strong> ${UTIL.escapeHtml(student.degreeLevel)}</div>
+              <div><strong>หลักสูตร:</strong> ${UTIL.escapeHtml(student.program || '-')}</div>
+              <div><strong>แผน:</strong> ${UTIL.escapeHtml(student.studyPlan || '-')}</div>
+              <div><strong>ปีที่เข้า:</strong> ${UTIL.escapeHtml(student.academicYear || '-')}</div>
+              <div><strong>วันเริ่ม:</strong> ${UTIL.formatDate(student.startDate)}</div>
+              <div><strong>กำหนดส่ง:</strong> ${UTIL.formatDate(student.expectedEndDate)}</div>
+              <div><strong>วันสำเร็จ:</strong> ${UTIL.formatDate(student.actualEndDate)}</div>
+            </div>
+            ${thesis ? `
+              <hr style="margin:16px 0;border:none;border-top:1px solid var(--color-border);">
+              <h4 class="mb-2">หัวข้อวิจัย</h4>
+              <div class="mb-2"><strong>ภาษาไทย:</strong> ${UTIL.escapeHtml(thesis.titleTh)}</div>
+              <div class="mb-2"><strong>English:</strong> ${UTIL.escapeHtml(thesis.titleEn || '-')}</div>
+              <div><strong>ประเภท:</strong> ${UTIL.escapeHtml(thesis.type || '-')}</div>
+            ` : ''}
+            ${student.notes ? `<div class="mt-3"><strong>หมายเหตุ:</strong> ${UTIL.escapeHtml(student.notes)}</div>` : ''}
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3 class="card-title">Timeline ความก้าวหน้า</h3>
+            <span class="badge badge-purple">${completedSteps}/5 ขั้น (${progressPct}%)</span>
+          </div>
+          <div class="card-body">
+            <div class="progress-bar-wrapper mb-4">
+              <div class="progress-bar" style="width:${progressPct}%"></div>
+            </div>
+            <div class="timeline">
+              ${PROGRESS_STEPS.map((step, idx) => {
+                const p = progress.find(x => Number(x.step) === step.step) || { status: 'PENDING' };
+                const cls = p.status === 'COMPLETED' ? 'completed' : (p.status === 'IN_PROGRESS' ? 'in-progress' : 'pending');
+                const icon = p.status === 'COMPLETED' ? '&#10003;' : step.step;
+                return `
+                  <div class="timeline-step ${cls}">
+                    <div class="timeline-dot">${icon}</div>
+                    <div class="timeline-content">
+                      <div class="timeline-title">ขั้นที่ ${step.step}: ${UTIL.escapeHtml(step.nameTh)}</div>
+                      <div class="timeline-meta">
+                        สถานะ: ${p.status === 'COMPLETED' ? 'เสร็จสิ้น' : p.status === 'IN_PROGRESS' ? 'กำลังดำเนินการ' : 'รอดำเนินการ'}<br>
+                        ${p.startDate ? 'เริ่ม: ' + UTIL.formatDate(p.startDate) + '<br>' : ''}
+                        ${p.completedDate ? 'เสร็จ: ' + UTIL.formatDate(p.completedDate) : ''}
+                      </div>
+                      ${AUTH.can('saveProgress') ? `<button class="btn btn-sm btn-secondary mt-2" data-progress-step="${step.step}" data-progress-id="${p.id || ''}">${p.status === 'COMPLETED' ? 'ดู/แก้ไข' : 'อัปเดต'}</button>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Logbook ล่าสุด</h3></div>
+            <div class="card-body">
+              ${logbooks && logbooks.length > 0 ? logbooks.slice(0, 3).map(l => `
+                <div class="mb-3">
+                  <strong>${UTIL.formatDate(l.entryDate)} - ${UTIL.escapeHtml(l.topic)}</strong>
+                  <div class="text-sm text-muted">${UTIL.escapeHtml((l.details || '').substring(0,80))}${(l.details||'').length > 80 ? '...' : ''}</div>
+                  <span class="badge ${l.status === 'APPROVED' ? 'badge-success' : l.status === 'REVISION_REQUIRED' ? 'badge-warning' : 'badge-info'}">${l.status === 'APPROVED' ? 'อนุมัติ' : l.status === 'REVISION_REQUIRED' ? 'ต้องแก้ไข' : 'รอตรวจ'}</span>
+                </div>
+              `).join('') : '<div class="text-muted">ยังไม่มี Logbook</div>'}
+            </div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">เอกสารล่าสุด</h3></div>
+            <div class="card-body">
+              ${documents && documents.length > 0 ? documents.slice(0, 3).map(d => `
+                <div class="mb-3 flex items-center gap-3">
+                  ${ICONS.document}
+                  <div>
+                    <div><strong>${UTIL.escapeHtml(d.fileName)}</strong></div>
+                    <div class="text-sm text-muted">${UTIL.escapeHtml(d.documentType || '-')} - ${UTIL.formatDate(d.createdAt)}</div>
+                  </div>
+                </div>
+              `).join('') : '<div class="text-muted">ยังไม่มีเอกสาร</div>'}
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">ตารางสอบ</h3></div>
+          <div class="card-body">
+            ${exams && exams.length > 0 ? `
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead><tr><th>ประเภท</th><th>วันที่</th><th>เวลา</th><th>ห้อง</th><th>ผลสอบ</th></tr></thead>
+                  <tbody>
+                    ${exams.map(e => `
+                      <tr>
+                        <td>${EXAM_TYPES[e.examType] || e.examType}</td>
+                        <td>${UTIL.formatDate(e.examDate)}</td>
+                        <td>${UTIL.escapeHtml(e.examTime || '-')}</td>
+                        <td>${UTIL.escapeHtml(e.room || '-')}</td>
+                        <td>${e.result ? `<span class="badge ${(EXAM_RESULTS[e.result]||{class:'badge-default'}).class}">${(EXAM_RESULTS[e.result]||{label:e.result}).label}</span>` : '<span class="badge badge-info">รอดำเนินการ</span>'}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : '<div class="text-muted">ยังไม่มีตารางสอบ</div>'}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('back-to-list').addEventListener('click', () => ROUTER.navigate('students'));
+      const editBtn = document.getElementById('edit-student');
+      if (editBtn) editBtn.addEventListener('click', () => PAGES.studentForm(id));
+
+      document.querySelectorAll('[data-progress-step]').forEach(btn => {
+        btn.addEventListener('click', () => PAGES.progressForm(student.id, Number(btn.dataset.progressStep), btn.dataset.progressId));
+      });
+
+    } catch(err) {
+      container.innerHTML = `<div class="error-state">${ICONS.error}<h3>ไม่สามารถโหลดข้อมูลได้</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async progressForm(studentId, step, progressId) {
+    const stepInfo = PROGRESS_STEPS[step - 1];
+    let progress = null;
+    if (progressId) {
+      // ใน DEMO ดึงจาก DEMO_DATA
+      progress = DEMO_DATA.progress.find(p => p.studentId === studentId && Number(p.step) === step);
+    }
+
+    const body = `
+      <form id="progress-form">
+        <p class="mb-3"><strong>ขั้นที่ ${step}: ${stepInfo.nameTh}</strong></p>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">สถานะ</label>
+            <select name="status" class="form-control">
+              <option value="PENDING" ${progress && progress.status === 'PENDING' ? 'selected' : ''}>รอดำเนินการ</option>
+              <option value="IN_PROGRESS" ${(!progress || progress.status === 'IN_PROGRESS') ? 'selected' : ''}>กำลังดำเนินการ</option>
+              <option value="COMPLETED" ${progress && progress.status === 'COMPLETED' ? 'selected' : ''}>เสร็จสิ้น</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่เริ่ม</label>
+            <input type="date" name="startDate" class="form-control" value="${progress ? progress.startDate : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่เสร็จ</label>
+            <input type="date" name="completedDate" class="form-control" value="${progress ? progress.completedDate : ''}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">หมายเหตุ</label>
+          <textarea name="notes" class="form-control">${progress ? UTIL.escapeHtml(progress.notes || '') : ''}</textarea>
+        </div>
+      </form>
+    `;
+
+    const overlay = Modal.open({
+      title: 'อัปเดตความก้าวหน้า',
+      body,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-progress">บันทึก</button>
+      `
+    });
+
+    document.getElementById('save-progress').addEventListener('click', async () => {
+      const form = document.getElementById('progress-form');
+      const formData = new FormData(form);
+      const data = { studentId, step, thesisId: '' };
+      formData.forEach((v,k) => data[k] = v);
+
+      const btn = document.getElementById('save-progress');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+      try {
+        const result = await API.request('saveProgress', data);
+        if (result.success) {
+          Toast.success('บันทึกความก้าวหน้าสำเร็จ');
+          Modal.close(overlay);
+          UI.renderContent();
+        } else {
+          Toast.error(result.message);
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'บันทึก';
+      }
+    });
+  },
+
+  // ---------- ADVISORS ----------
+  async advisors(container) {
+    container.innerHTML = `<div class="card"><div class="card-body"><div class="skeleton-line"></div></div></div>`;
+    try {
+      const result = await API.request('listAdvisors');
+      if (!result.success) throw new Error(result.message);
+      const advisors = result.data.items;
+
+      container.innerHTML = `
+        <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+          <h3 style="font-size:18px;font-weight:600;">อาจารย์ที่ปรึกษา (${advisors.length} คน)</h3>
+          ${AUTH.can('createAdvisor') ? `<button class="btn btn-success" id="add-advisor">${ICONS.add} เพิ่มอาจารย์</button>` : ''}
+        </div>
+        <div class="grid-2">
+          ${advisors.map(a => `
+            <div class="card mb-3">
+              <div class="card-body">
+                <div class="flex justify-between items-center mb-2">
+                  <h4 class="card-title">${UTIL.escapeHtml(a.titleTh)} ${UTIL.escapeHtml(a.firstNameTh)} ${UTIL.escapeHtml(a.lastNameTh)}</h4>
+                  ${a.isOverQuota ? `<span class="badge badge-danger">เกินโควตา</span>` : ''}
+                </div>
+                <div class="text-sm mb-2"><strong>ตำแหน่ง:</strong> ${UTIL.escapeHtml(a.academicPosition || '-')}</div>
+                <div class="text-sm mb-2"><strong>อีเมล:</strong> ${UTIL.escapeHtml(a.email || '-')}</div>
+                <div class="text-sm mb-2"><strong>เบอร์:</strong> ${UTIL.escapeHtml(a.phone || '-')}</div>
+                <div class="text-sm mb-2"><strong>ความเชี่ยวชาญ:</strong> ${UTIL.escapeHtml(a.expertise || '-')}</div>
+                <div class="flex items-center gap-3 mt-3">
+                  <div>
+                    <div class="text-sm text-muted">นิสิตที่ดูแล</div>
+                    <strong>${a.currentCount || 0} / ${a.maxQuota}</strong>
+                  </div>
+                  <div class="progress-bar-wrapper" style="flex:1;">
+                    <div class="progress-bar" style="width:${Math.min((a.currentCount / Math.max(a.maxQuota,1)) * 100, 100)}%; background:${a.isOverQuota ? 'var(--color-danger)' : 'var(--color-success)'}"></div>
+                  </div>
+                </div>
+                ${AUTH.can('updateAdvisor') ? `
+                  <div class="flex gap-2 mt-3 justify-end">
+                    <button class="btn btn-sm btn-secondary" data-action="edit" data-id="${a.id}">${ICONS.edit} แก้ไข</button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      const addBtn = document.getElementById('add-advisor');
+      if (addBtn) addBtn.addEventListener('click', () => PAGES.advisorForm(null));
+      container.querySelectorAll('[data-action="edit"]').forEach(btn => {
+        btn.addEventListener('click', () => PAGES.advisorForm(btn.dataset.id));
+      });
+    } catch(err) {
+      container.innerHTML = `<div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async advisorForm(id) {
+    let advisor = null;
+    if (id) {
+      const res = await API.request('listAdvisors');
+      if (res.success) advisor = res.data.items.find(a => a.id === id);
+    }
+    const titleOptions = ['อ.','ผศ.','รศ.','ศ.','ดร.'].map(t =>
+      `<option value="${t}" ${advisor && advisor.titleTh === t ? 'selected' : ''}>${t}</option>`
+    ).join('');
+
+    const body = `
+      <form id="advisor-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">คำนำหน้า</label>
+            <select name="titleTh" class="form-control">${titleOptions}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ชื่อ <span class="required">*</span></label>
+            <input type="text" name="firstNameTh" class="form-control" value="${advisor ? UTIL.escapeHtml(advisor.firstNameTh) : ''}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">นามสกุล <span class="required">*</span></label>
+            <input type="text" name="lastNameTh" class="form-control" value="${advisor ? UTIL.escapeHtml(advisor.lastNameTh) : ''}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ตำแหน่งทางวิชาการ</label>
+            <input type="text" name="academicPosition" class="form-control" value="${advisor ? UTIL.escapeHtml(advisor.academicPosition || '') : 'อาจารย์'}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมล</label>
+            <input type="email" name="email" class="form-control" value="${advisor ? UTIL.escapeHtml(advisor.email || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">เบอร์โทร</label>
+            <input type="tel" name="phone" class="form-control" value="${advisor ? UTIL.escapeHtml(advisor.phone || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ความเชี่ยวชาญ</label>
+            <input type="text" name="expertise" class="form-control" value="${advisor ? UTIL.escapeHtml(advisor.expertise || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">โควตาสูงสุด</label>
+            <input type="number" name="maxQuota" class="form-control" value="${advisor ? advisor.maxQuota : 8}" min="0" max="50">
+          </div>
+        </div>
+      </form>
+    `;
+
+    const overlay = Modal.open({
+      title: id ? 'แก้ไขข้อมูลอาจารย์' : 'เพิ่มอาจารย์',
+      body,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-advisor">${id ? 'บันทึก' : 'เพิ่ม'}</button>
+      `
+    });
+
+    document.getElementById('save-advisor').addEventListener('click', async () => {
+      const form = document.getElementById('advisor-form');
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((v,k) => data[k] = v);
+      if (id) data.id = id;
+
+      const btn = document.getElementById('save-advisor');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+      try {
+        const result = await API.request(id ? 'updateAdvisor' : 'createAdvisor', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          UI.renderContent();
+        } else {
+          Toast.error(result.message);
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = id ? 'บันทึก' : 'เพิ่ม';
+      }
+    });
+  },
+
+  // ---------- LOGBOOK ----------
+  async logbook(container) {
+    STATE.filters.logbook = STATE.filters.logbook || {};
+    container.innerHTML = `
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">สถานะ</label>
+              <select id="logbook-filter-status" class="form-control">
+                <option value="">ทั้งหมด</option>
+                <option value="PENDING">รอตรวจ</option>
+                <option value="APPROVED">อนุมัติแล้ว</option>
+                <option value="REVISION_REQUIRED">ต้องแก้ไข</option>
+              </select>
+            </div>
+            ${AUTH.can('createLogbook') ? `
+              <div class="form-group" style="display:flex;align-items:flex-end;">
+                <button class="btn btn-success" id="add-logbook">${ICONS.add} เพิ่ม Logbook</button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+      <div id="logbook-list"><div class="skeleton-block"></div></div>
+    `;
+    document.getElementById('logbook-filter-status').addEventListener('change', (e) => {
+      STATE.filters.logbook.status = e.target.value;
+      PAGES.logbook_render();
+    });
+    const addBtn = document.getElementById('add-logbook');
+    if (addBtn) addBtn.addEventListener('click', () => PAGES.logbookForm(null));
+    PAGES.logbook_render();
+  },
+
+  async logbook_render() {
+    const area = document.getElementById('logbook-list');
+    if (!area) return;
+    try {
+      const result = await API.request('listLogbooks', { status: STATE.filters.logbook.status });
+      if (!result.success) throw new Error(result.message);
+      const items = result.data.items;
+
+      if (items.length === 0) {
+        area.innerHTML = `<div class="card"><div class="empty-state">${ICONS.empty}<h3>ไม่พบ Logbook</h3><p>ยังไม่มีบันทึกในระบบ</p></div></div>`;
+        return;
+      }
+
+      area.innerHTML = items.map(l => {
+        const stMap = { APPROVED: { label: 'อนุมัติ', class: 'badge-success' }, PENDING: { label: 'รอตรวจ', class: 'badge-info' }, REVISION_REQUIRED: { label: 'ต้องแก้ไข', class: 'badge-warning' } };
+        const st = stMap[l.status] || { label: l.status, class: 'badge-default' };
+        return `
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="flex justify-between items-start flex-wrap gap-3 mb-2">
+                <div>
+                  <strong>${UTIL.formatDate(l.entryDate)}</strong>
+                  <span class="text-muted"> - </span>
+                  <strong>${UTIL.escapeHtml(l.topic)}</strong>
+                </div>
+                <span class="badge ${st.class}">${st.label}</span>
+              </div>
+              <p class="text-sm">${UTIL.escapeHtml(l.details || '-')}</p>
+              ${l.feedback ? `<div class="mt-2" style="background:var(--color-info-bg);padding:8px 12px;border-radius:var(--radius-md);"><strong>ข้อเสนอแนะ:</strong> ${UTIL.escapeHtml(l.feedback)}</div>` : ''}
+              ${AUTH.can('reviewLogbook') && l.status === 'PENDING' ? `
+                <div class="flex gap-2 mt-3 justify-end">
+                  <button class="btn btn-sm btn-secondary" data-action="review" data-id="${l.id}" data-status="REVISION_REQUIRED">ส่งกลับแก้ไข</button>
+                  <button class="btn btn-sm btn-success" data-action="review" data-id="${l.id}" data-status="APPROVED">อนุมัติ</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      area.querySelectorAll('[data-action="review"]').forEach(btn => {
+        btn.addEventListener('click', () => PAGES.logbookReview(btn.dataset.id, btn.dataset.status));
+      });
+    } catch(err) {
+      area.innerHTML = `<div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async logbookForm() {
+    const body = `
+      <form id="logbook-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">วันที่ <span class="required">*</span></label>
+            <input type="date" name="entryDate" class="form-control" value="${new Date().toISOString().slice(0,10)}" required>
+          </div>
+          ${AUTH.hasRole('STUDENT') ? '' : `
+            <div class="form-group">
+              <label class="form-label">นิสิต <span class="required">*</span></label>
+              <select name="studentId" class="form-control" required>
+                <option value="">-- เลือก --</option>
+              </select>
+            </div>
+          `}
+        </div>
+        <div class="form-group">
+          <label class="form-label">หัวข้อ <span class="required">*</span></label>
+          <input type="text" name="topic" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">รายละเอียด</label>
+          <textarea name="details" class="form-control" rows="5"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">แนบไฟล์ (ไม่บังคับ)</label>
+          <input type="file" name="attachment" class="form-control">
+          <div class="form-help">รองรับ PDF, DOC, DOCX, JPG, PNG (สูงสุด 25 MB)</div>
+        </div>
+      </form>
+    `;
+
+    const overlay = Modal.open({
+      title: 'เพิ่ม Logbook',
+      body,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-logbook">บันทึก</button>
+      `
+    });
+
+    // ถ้าไม่ใช่ student ให้โหลดรายการนิสิต
+    if (!AUTH.hasRole('STUDENT')) {
+      try {
+        const res = await API.request('listStudents', { page: 1, pageSize: 200 });
+        if (res.success) {
+          const select = overlay.querySelector('[name="studentId"]');
+          res.data.items.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.studentCode + ' - ' + s.firstNameTh + ' ' + s.lastNameTh;
+            select.appendChild(opt);
+          });
+        }
+      } catch(e) {}
+    }
+
+    document.getElementById('save-logbook').addEventListener('click', async () => {
+      const form = document.getElementById('logbook-form');
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((v,k) => data[k] = v);
+      if (AUTH.hasRole('STUDENT') && STATE.currentUser.studentId) {
+        data.studentId = STATE.currentUser.studentId;
+      }
+      const btn = document.getElementById('save-logbook');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+      try {
+        const result = await API.request('createLogbook', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          PAGES.logbook_render();
+        } else {
+          Toast.error(result.message);
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'บันทึก';
+      }
+    });
+  },
+
+  async logbookReview(id, status) {
+    const body = `
+      <form id="review-form">
+        <div class="form-group">
+          <label class="form-label">ข้อเสนอแนะ</label>
+          <textarea name="feedback" class="form-control" rows="4" required></textarea>
+        </div>
+      </form>
+    `;
+    const overlay = Modal.open({
+      title: status === 'APPROVED' ? 'อนุมัติ Logbook' : 'ส่งกลับแก้ไข',
+      body,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn ${status === 'APPROVED' ? 'btn-success' : 'btn-warning'}" id="confirm-review">ยืนยัน</button>
+      `
+    });
+    document.getElementById('confirm-review').addEventListener('click', async () => {
+      const form = document.getElementById('review-form');
+      const formData = new FormData(form);
+      const data = { id, status, feedback: formData.get('feedback') };
+      const btn = document.getElementById('confirm-review');
+      btn.disabled = true;
+      try {
+        const result = await API.request('reviewLogbook', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          PAGES.logbook_render();
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  },
+
+  // ---------- EXAMS ----------
+  async exams(container) {
+    container.innerHTML = `
+      <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+        <h3 style="font-size:18px;font-weight:600;">ตารางสอบ</h3>
+        ${AUTH.can('createExam') ? `<button class="btn btn-success" id="add-exam">${ICONS.add} จัดสอบ</button>` : ''}
+      </div>
+      <div id="exams-list"><div class="skeleton-block"></div></div>
+    `;
+    const addBtn = document.getElementById('add-exam');
+    if (addBtn) addBtn.addEventListener('click', () => PAGES.examForm(null));
+    PAGES.exams_render();
+  },
+
+  async exams_render() {
+    const area = document.getElementById('exams-list');
+    if (!area) return;
+    try {
+      const result = await API.request('listExams');
+      if (!result.success) throw new Error(result.message);
+      const items = result.data.items;
+      if (items.length === 0) {
+        area.innerHTML = `<div class="card"><div class="empty-state">${ICONS.empty}<h3>ไม่พบตารางสอบ</h3></div></div>`;
+        return;
+      }
+      area.innerHTML = `
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>ประเภท</th><th>วันที่</th><th>เวลา</th><th>ห้อง</th><th>กรรมการ</th><th>ผลสอบ</th><th>การจัดการ</th></tr></thead>
+              <tbody>
+                ${items.map(e => {
+                  const resultBadge = e.result ? `<span class="badge ${(EXAM_RESULTS[e.result]||{class:'badge-default'}).class}">${(EXAM_RESULTS[e.result]||{label:e.result}).label}</span>` : '<span class="badge badge-info">รอสอบ</span>';
+                  return `
+                  <tr>
+                    <td>${EXAM_TYPES[e.examType] || e.examType}</td>
+                    <td>${UTIL.formatDate(e.examDate)}</td>
+                    <td>${UTIL.escapeHtml(e.examTime || '-')}</td>
+                    <td>${UTIL.escapeHtml(e.room || '-')}<br>${e.onlineUrl ? `<a href="${UTIL.escapeHtml(e.onlineUrl)}" target="_blank" class="text-sm">ลิงก์</a>` : ''}</td>
+                    <td>${e.committees && e.committees.length > 0 ? e.committees.map(c => `<div class="text-sm">${UTIL.escapeHtml(c.role)}: ${UTIL.escapeHtml(c.name)}</div>`).join('') : '-'}</td>
+                    <td>${resultBadge}</td>
+                    <td>
+                      <div class="flex gap-2">
+                        ${AUTH.can('updateExam') && !e.result ? `<button class="btn btn-icon btn-secondary btn-sm" data-action="edit" data-id="${e.id}">${ICONS.edit}</button>` : ''}
+                        ${AUTH.can('updateExam') && !e.result ? `<button class="btn btn-icon btn-success btn-sm" data-action="result" data-id="${e.id}" title="บันทึกผล">${ICONS.check}</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      area.querySelectorAll('[data-action="edit"]').forEach(btn => btn.addEventListener('click', () => PAGES.examForm(btn.dataset.id)));
+      area.querySelectorAll('[data-action="result"]').forEach(btn => btn.addEventListener('click', () => PAGES.examResultForm(btn.dataset.id)));
+    } catch(err) {
+      area.innerHTML = `<div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async examForm(id) {
+    let exam = null;
+    let students = [];
+    let advisors = [];
+    try {
+      const sRes = await API.request('listStudents', { page: 1, pageSize: 200 });
+      if (sRes.success) students = sRes.data.items;
+      const aRes = await API.request('listAdvisors');
+      if (aRes.success) advisors = aRes.data.items;
+      if (id) {
+        const eRes = await API.request('listExams');
+        if (eRes.success) exam = eRes.data.items.find(e => e.id === id);
+      }
+    } catch(e) {}
+
+    const body = `
+      <form id="exam-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">นิสิต <span class="required">*</span></label>
+            <select name="studentId" class="form-control" required ${id ? 'disabled' : ''}>
+              <option value="">-- เลือก --</option>
+              ${students.map(s => `<option value="${s.id}" ${exam && exam.studentId === s.id ? 'selected' : ''}>${UTIL.escapeHtml(s.studentCode + ' - ' + s.firstNameTh + ' ' + s.lastNameTh)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ประเภทการสอบ <span class="required">*</span></label>
+            <select name="examType" class="form-control" required>
+              <option value="">-- เลือก --</option>
+              <option value="PROPOSAL" ${exam && exam.examType === 'PROPOSAL' ? 'selected' : ''}>สอบเค้าโครง</option>
+              <option value="FINAL" ${exam && exam.examType === 'FINAL' ? 'selected' : ''}>สอบปากเปล่าขั้นสุดท้าย</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่ <span class="required">*</span></label>
+            <input type="date" name="examDate" class="form-control" value="${exam ? exam.examDate : ''}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">เวลา <span class="required">*</span></label>
+            <input type="time" name="examTime" class="form-control" value="${exam ? exam.examTime : ''}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ห้องสอบ</label>
+            <input type="text" name="room" class="form-control" value="${exam ? UTIL.escapeHtml(exam.room || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL Zoom/Meet</label>
+            <input type="url" name="onlineUrl" class="form-control" value="${exam ? UTIL.escapeHtml(exam.onlineUrl || '') : ''}">
+          </div>
+        </div>
+        <h4 class="mb-2">กรรมการสอบ</h4>
+        <div id="committees-container">
+          ${exam && exam.committees && exam.committees.length > 0 ? exam.committees.map((c, i) => PAGES.examCommitteeRow(advisors, c, i)).join('') : PAGES.examCommitteeRow(advisors, null, 0)}
+        </div>
+        <button type="button" class="btn btn-sm btn-secondary mt-2" id="add-committee">${ICONS.add} เพิ่มกรรมการ</button>
+      </form>
+    `;
+
+    const overlay = Modal.open({
+      title: id ? 'แก้ไขตารางสอบ' : 'จัดสอบใหม่',
+      body,
+      size: 'lg',
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-exam">${id ? 'บันทึก' : 'จัดสอบ'}</button>
+      `
+    });
+
+    let committeeIndex = overlay.querySelectorAll('#committees-container > div').length;
+    document.getElementById('add-committee').addEventListener('click', () => {
+      const container = document.getElementById('committees-container');
+      const div = document.createElement('div');
+      div.innerHTML = PAGES.examCommitteeRow(advisors, null, committeeIndex);
+      container.appendChild(div.firstElementChild);
+      committeeIndex++;
+    });
+
+    document.getElementById('save-exam').addEventListener('click', async () => {
+      const form = document.getElementById('exam-form');
+      const formData = new FormData(form);
+      const data = { examType: formData.get('examType'), examDate: formData.get('examDate'), examTime: formData.get('examTime'), room: formData.get('room'), onlineUrl: formData.get('onlineUrl'), committees: [] };
+      if (!id) data.studentId = formData.get('studentId');
+      else data.id = id;
+      // กรรมการ
+      const rows = overlay.querySelectorAll('#committees-container > div');
+      rows.forEach(row => {
+        const role = row.querySelector('[data-field="role"]').value;
+        const advisorId = row.querySelector('[data-field="advisorId"]').value;
+        if (role && advisorId) data.committees.push({ role, advisorId });
+      });
+
+      const btn = document.getElementById('save-exam');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+      try {
+        const result = await API.request(id ? 'updateExam' : 'createExam', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          PAGES.exams_render();
+        } else {
+          Toast.error(result.message);
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = id ? 'บันทึก' : 'จัดสอบ';
+      }
+    });
+  },
+
+  examCommitteeRow(advisors, c, i) {
+    return `
+      <div class="form-row" style="margin-bottom:8px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <select class="form-control" data-field="role">
+            <option value="">-- บทบาท --</option>
+            <option value="CHAIR" ${c && c.role === 'CHAIR' ? 'selected' : ''}>ประธานกรรมการ</option>
+            <option value="COMMITTEE" ${c && c.role === 'COMMITTEE' ? 'selected' : ''}>กรรมการ</option>
+            <option value="SECRETARY" ${c && c.role === 'SECRETARY' ? 'selected' : ''}>เลขานุการ</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <select class="form-control" data-field="advisorId">
+            <option value="">-- อาจารย์ --</option>
+            ${advisors.map(a => `<option value="${a.id}" ${c && c.advisorId === a.id ? 'selected' : ''}>${UTIL.escapeHtml(a.titleTh + ' ' + a.firstNameTh + ' ' + a.lastNameTh)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    `;
+  },
+
+  async examResultForm(id) {
+    const body = `
+      <form id="result-form">
+        <div class="form-group">
+          <label class="form-label">ผลสอบ <span class="required">*</span></label>
+          <select name="result" class="form-control" required>
+            <option value="">-- เลือก --</option>
+            <option value="PASS">ผ่าน</option>
+            <option value="CONDITIONAL_PASS">ผ่านแบบมีเงื่อนไข</option>
+            <option value="FAIL">ไม่ผ่าน</option>
+            <option value="PENDING">รอดำเนินการ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ข้อเสนอแนะ</label>
+          <textarea name="feedback" class="form-control" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">กำหนดวันแก้ไข</label>
+          <input type="date" name="revisionDeadline" class="form-control">
+        </div>
+      </form>
+    `;
+    const overlay = Modal.open({
+      title: 'บันทึกผลสอบ',
+      body,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-result">บันทึกผล</button>
+      `
+    });
+    document.getElementById('save-result').addEventListener('click', async () => {
+      const form = document.getElementById('result-form');
+      const formData = new FormData(form);
+      const data = { id, result: formData.get('result'), feedback: formData.get('feedback'), revisionDeadline: formData.get('revisionDeadline') };
+      if (!data.result) { Toast.error('กรุณาเลือกผลสอบ'); return; }
+      const btn = document.getElementById('save-result');
+      btn.disabled = true;
+      try {
+        const result = await API.request('recordExamResult', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          PAGES.exams_render();
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  },
+
+  // ---------- DOCUMENTS ----------
+  async documents(container) {
+    container.innerHTML = `
+      <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+        <h3 style="font-size:18px;font-weight:600;">เอกสารและไฟล์แนบ</h3>
+        ${AUTH.can('uploadDocument') ? `<button class="btn btn-success" id="upload-doc">${ICONS.add} อัปโหลด</button>` : ''}
+      </div>
+      <div id="docs-list"><div class="skeleton-block"></div></div>
+    `;
+    const uploadBtn = document.getElementById('upload-doc');
+    if (uploadBtn) uploadBtn.addEventListener('click', () => PAGES.documentForm());
+    PAGES.documents_render();
+  },
+
+  async documents_render() {
+    const area = document.getElementById('docs-list');
+    if (!area) return;
+    try {
+      const result = await API.request('listDocuments');
+      if (!result.success) throw new Error(result.message);
+      const items = result.data.items;
+      if (items.length === 0) {
+        area.innerHTML = `<div class="card"><div class="empty-state">${ICONS.empty}<h3>ไม่พบเอกสาร</h3></div></div>`;
+        return;
+      }
+      area.innerHTML = `
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>ชื่อไฟล์</th><th>ประเภท</th><th>ขนาด</th><th>อัปโหลดเมื่อ</th><th>การจัดการ</th></tr></thead>
+              <tbody>
+                ${items.map(d => `
+                  <tr>
+                    <td>${ICONS.document} ${UTIL.escapeHtml(d.fileName)}</td>
+                    <td>${UTIL.escapeHtml(d.documentType || '-')}</td>
+                    <td>${UTIL.formatFileSize(d.fileSize)}</td>
+                    <td>${UTIL.formatDate(d.createdAt)}</td>
+                    <td><a href="${UTIL.escapeHtml(d.fileUrl || '#')}" target="_blank" class="btn btn-sm btn-secondary">${ICONS.eye} เปิด</a></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    } catch(err) {
+      area.innerHTML = `<div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async documentForm() {
+    let students = [];
+    try {
+      const res = await API.request('listStudents', { page: 1, pageSize: 200 });
+      if (res.success) students = res.data.items;
+    } catch(e) {}
+
+    const body = `
+      <form id="doc-form" enctype="multipart/form-data">
+        ${AUTH.hasRole('STUDENT') ? '' : `
+          <div class="form-group">
+            <label class="form-label">นิสิต <span class="required">*</span></label>
+            <select name="studentId" class="form-control" required>
+              <option value="">-- เลือก --</option>
+              ${students.map(s => `<option value="${s.id}">${UTIL.escapeHtml(s.studentCode + ' - ' + s.firstNameTh + ' ' + s.lastNameTh)}</option>`).join('')}
+            </select>
+          </div>
+        `}
+        <div class="form-group">
+          <label class="form-label">ประเภทเอกสาร</label>
+          <select name="documentType" class="form-control">
+            <option value="แบบเสนอหัวข้อ">แบบเสนอหัวข้อ</option>
+            <option value="เค้าโครง">เค้าโครง</option>
+            <option value="แบบประเมิน">แบบประเมิน</option>
+            <option value="เล่มสมบูรณ์">เล่มสมบูรณ์</option>
+            <option value="แก้ไข">ฉบับแก้ไข</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ไฟล์ <span class="required">*</span></label>
+          <input type="file" name="file" class="form-control" required>
+          <div class="form-help">รองรับ PDF, DOC, DOCX, PPT, PPTX, JPG, PNG (สูงสุด 25 MB)</div>
+        </div>
+      </form>
+    `;
+    const overlay = Modal.open({
+      title: 'อัปโหลดเอกสาร',
+      body,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-doc">อัปโหลด</button>
+      `
+    });
+    document.getElementById('save-doc').addEventListener('click', async () => {
+      const form = document.getElementById('doc-form');
+      const fileInput = form.querySelector('[name="file"]');
+      const file = fileInput.files[0];
+      if (!file) { Toast.error('กรุณาเลือกไฟล์'); return; }
+      const ext = file.name.split('.').pop().toLowerCase();
+      const allowed = ['pdf','doc','docx','ppt','pptx','jpg','jpeg','png','xls','xlsx'];
+      if (allowed.indexOf(ext) < 0) { Toast.error('ประเภทไฟล์ไม่ได้รับอนุญาต'); return; }
+      if (file.size > 25 * 1024 * 1024) { Toast.error('ไฟล์ใหญ่เกิน 25 MB'); return; }
+
+      const formData = new FormData(form);
+      const data = { documentType: formData.get('documentType'), fileName: file.name, mimeType: file.type, fileSize: file.size };
+      if (AUTH.hasRole('STUDENT') && STATE.currentUser.studentId) {
+        data.studentId = STATE.currentUser.studentId;
+      } else {
+        data.studentId = formData.get('studentId');
+      }
+      if (!data.studentId) { Toast.error('กรุณาเลือกนิสิต'); return; }
+
+      // แปลงไฟล์เป็น base64 สำหรับส่งไป API จริง
+      if (!CONFIG.DEMO_MODE) {
+        data.fileContent = await UTIL.fileToBase64(file);
+      }
+
+      const btn = document.getElementById('save-doc');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังอัปโหลด...';
+      try {
+        const result = await API.request('uploadDocument', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          PAGES.documents_render();
+        } else {
+          Toast.error(result.message);
+        }
+      } catch(e) {
+        Toast.error('อัปโหลดไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'อัปโหลด';
+      }
+    });
+  },
+
+  // ---------- USERS ----------
+  async users(container) {
+    container.innerHTML = `
+      <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+        <h3 style="font-size:18px;font-weight:600;">จัดการผู้ใช้และสิทธิ์</h3>
+        ${AUTH.hasRole('SUPER_ADMIN') ? `<button class="btn btn-success" id="add-user">${ICONS.add} เพิ่มผู้ใช้</button>` : ''}
+      </div>
+      <div id="users-list"><div class="skeleton-block"></div></div>
+    `;
+    const addBtn = document.getElementById('add-user');
+    if (addBtn) addBtn.addEventListener('click', () => PAGES.userForm(null));
+    PAGES.users_render();
+  },
+
+  async users_render() {
+    const area = document.getElementById('users-list');
+    if (!area) return;
+    try {
+      const result = await API.request('listUsers');
+      if (!result.success) throw new Error(result.message);
+      const items = result.data.items;
+      area.innerHTML = `
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>ชื่อ</th><th>อีเมล</th><th>บทบาท</th><th>สถานะ</th><th>เข้าระบบล่าสุด</th><th>การจัดการ</th></tr></thead>
+              <tbody>
+                ${items.map(u => `
+                  <tr>
+                    <td>${UTIL.escapeHtml(u.displayName)}</td>
+                    <td>${UTIL.escapeHtml(u.email)}</td>
+                    <td><span class="badge badge-purple">${ROLE_LABELS[u.role] || u.role}</span></td>
+                    <td><span class="badge ${u.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}">${u.status === 'ACTIVE' ? 'ใช้งาน' : 'ระงับ'}</span></td>
+                    <td>${UTIL.formatDateTime(u.lastLoginAt)}</td>
+                    <td>
+                      ${AUTH.hasRole('SUPER_ADMIN') && u.id !== STATE.currentUser.id ? `
+                        <button class="btn btn-icon btn-secondary btn-sm" data-action="edit" data-id="${u.id}" title="เปลี่ยนบทบาท">${ICONS.edit}</button>
+                      ` : ''}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      area.querySelectorAll('[data-action="edit"]').forEach(btn => btn.addEventListener('click', () => PAGES.userForm(btn.dataset.id)));
+    } catch(err) {
+      area.innerHTML = `<div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async userForm(id) {
+    let user = null;
+    if (id) {
+      const res = await API.request('listUsers');
+      if (res.success) user = res.data.items.find(u => u.id === id);
+    }
+    const body = `
+      <form id="user-form">
+        <div class="form-group">
+          <label class="form-label">ชื่อแสดง <span class="required">*</span></label>
+          <input type="text" name="displayName" class="form-control" value="${user ? UTIL.escapeHtml(user.displayName) : ''}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">อีเมล <span class="required">*</span></label>
+          <input type="email" name="email" class="form-control" value="${user ? UTIL.escapeHtml(user.email) : ''}" required ${id ? 'disabled' : ''}>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">บทบาท <span class="required">*</span></label>
+            <select name="role" class="form-control" required>
+              ${Object.keys(ROLE_LABELS).map(r => {
+                const disabled = (r === 'ADMIN' || r === 'SUPER_ADMIN') && !AUTH.hasRole('SUPER_ADMIN') ? 'disabled' : '';
+                return `<option value="${r}" ${user && user.role === r ? 'selected' : ''} ${disabled}>${ROLE_LABELS[r]}</option>`;
+              }).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">สถานะ</label>
+            <select name="status" class="form-control">
+              <option value="ACTIVE" ${user && user.status === 'ACTIVE' ? 'selected' : ''}>ใช้งาน</option>
+              <option value="SUSPENDED" ${user && user.status === 'SUSPENDED' ? 'selected' : ''}>ระงับ</option>
+            </select>
+          </div>
+        </div>
+        ${!id ? `
+          <div class="form-group">
+            <label class="form-label">รหัสผ่านชั่วคราว</label>
+            <input type="password" name="password" class="form-control">
+            <div class="form-help">เว้นว่างหากจะใช้ Google Login เท่านั้น</div>
+          </div>
+        ` : ''}
+      </form>
+    `;
+    const overlay = Modal.open({
+      title: id ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้',
+      body,
+      footer: `
+        <button class="btn btn-secondary" data-action="close">ยกเลิก</button>
+        <button class="btn btn-primary" id="save-user">${id ? 'บันทึก' : 'เพิ่ม'}</button>
+      `
+    });
+    document.getElementById('save-user').addEventListener('click', async () => {
+      const form = document.getElementById('user-form');
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((v,k) => data[k] = v);
+      if (id) data.id = id;
+      const btn = document.getElementById('save-user');
+      btn.disabled = true;
+      try {
+        const result = await API.request(id ? 'updateUserRole' : 'createUser', data);
+        if (result.success) {
+          Toast.success(result.message);
+          Modal.close(overlay);
+          PAGES.users_render();
+        } else {
+          Toast.error(result.message);
+        }
+      } catch(e) {
+        Toast.error('บันทึกไม่สำเร็จ');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  },
+
+  // ---------- AUDIT LOG ----------
+  async audit(container) {
+    container.innerHTML = `<div id="audit-area"><div class="skeleton-block"></div></div>`;
+    const area = document.getElementById('audit-area');
+    try {
+      const result = await API.request('getAuditLogs', { page: 1, pageSize: 100 });
+      if (!result.success) throw new Error(result.message);
+      const items = result.data.items;
+      area.innerHTML = `
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>วันเวลา</th><th>ผู้ใช้</th><th>Action</th><th>Resource</th><th>Record ID</th></tr></thead>
+              <tbody>
+                ${items.map(a => `
+                  <tr>
+                    <td>${UTIL.formatDateTime(a.timestamp)}</td>
+                    <td>${UTIL.escapeHtml(a.userEmail || '-')}</td>
+                    <td><span class="badge badge-purple">${UTIL.escapeHtml(a.action)}</span></td>
+                    <td>${UTIL.escapeHtml(a.resource || '-')}</td>
+                    <td>${UTIL.escapeHtml(a.recordId || '-')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    } catch(err) {
+      area.innerHTML = `<div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  // ---------- SETTINGS ----------
+  async settings(container) {
+    container.innerHTML = `<div id="settings-area"><div class="skeleton-block"></div></div>`;
+    const area = document.getElementById('settings-area');
+    try {
+      const result = await API.request('getSettings');
+      if (!result.success) throw new Error(result.message);
+      const s = result.data.settings;
+      const items = result.data.items;
+      area.innerHTML = `
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">การตั้งค่าระบบ</h3></div>
+          <div class="card-body">
+            <form id="settings-form">
+              ${items.filter(i => i.key !== 'isSetupComplete' && i.key !== 'googleDriveFolderId').map(item => {
+                if (item.type === 'number') {
+                  return `<div class="form-group"><label class="form-label">${UTIL.escapeHtml(item.description || item.key)}</label><input type="number" name="${item.key}" class="form-control" value="${UTIL.escapeHtml(item.value)}"></div>`;
+                }
+                return `<div class="form-group"><label class="form-label">${UTIL.escapeHtml(item.description || item.key)}</label><input type="text" name="${item.key}" class="form-control" value="${UTIL.escapeHtml(item.value)}"></div>`;
+              }).join('')}
+              ${AUTH.hasRole('SUPER_ADMIN') ? `<button type="button" class="btn btn-primary" id="save-settings">${ICONS.check} บันทึกการตั้งค่า</button>` : ''}
+            </form>
+          </div>
+        </div>
+      `;
+      const saveBtn = document.getElementById('save-settings');
+      if (saveBtn) saveBtn.addEventListener('click', async () => {
+        const form = document.getElementById('settings-form');
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((v,k) => data[k] = v);
+        saveBtn.disabled = true;
+        try {
+          const result = await API.request('updateSettings', { settings: data });
+          if (result.success) {
+            Toast.success(result.message);
+          }
+        } catch(e) {
+          Toast.error('บันทึกไม่สำเร็จ');
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    } catch(err) {
+      area.innerHTML = `<div class="error-state">${ICONS.error}<h3>เกิดข้อผิดพลาด</h3><p>${UTIL.escapeHtml(err.message)}</p></div>`;
+    }
+  }
+};
+
+// เพิ่ม helper แปลงไฟล์เป็น base64
+UTIL.fileToBase64 = function(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      // ตัด data URL prefix ออก
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+/* ============================================================
+   INIT
+   ============================================================ */
+async function init() {
+  // ตรวจสอบ session
+  const hasSession = await AUTH.checkSession();
+  if (hasSession) {
+    ROUTER.navigate('dashboard');
+  } else {
+    UI.renderLogin();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
